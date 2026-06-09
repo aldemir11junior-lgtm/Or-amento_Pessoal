@@ -1,0 +1,13 @@
+[
+  {
+    "usuario": "Aldemir",
+    "senha": "b893d95b84147998b72fbbc2fcdc08c53c6b7857832cdf27e1f18d5afb890412",
+    "role": "admin"
+  },
+  {
+    "usuario": "Test",
+    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "role": "user",
+    "status": "aprovado"
+  }
+]

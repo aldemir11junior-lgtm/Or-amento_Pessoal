@@ -1,0 +1,159 @@
+{
+  "aldemir": {
+    "lancamentos": [
+      {
+        "id": 1781019429954,
+        "data": "2026-06-09",
+        "valor": 1500.0,
+        "descricao": "salario",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1781018322731,
+        "data": "2026-02-02",
+        "valor": 1500.0,
+        "descricao": "pagamento",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1780976225607,
+        "data": "2026-06-08",
+        "valor": 150.0,
+        "descricao": "churrasco",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1780976214931,
+        "data": "2026-06-08",
+        "valor": 0.01,
+        "descricao": "churrasco",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1780976206589,
+        "data": "2026-06-08",
+        "valor": 55.0,
+        "descricao": "cinema",
+        "tipo": "Variável",
+        "classe": "Lazer",
+        "icone": "🎉"
+      },
+      {
+        "id": 1780976141420,
+        "data": "2026-04-08",
+        "valor": 350.0,
+        "descricao": "salario",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1780976129948,
+        "data": "2026-04-01",
+        "valor": 1500.0,
+        "descricao": "pagamento",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1780975193714,
+        "data": "2026-06-08",
+        "valor": 2000.0,
+        "descricao": "pagamento",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1780975186485,
+        "data": "2026-05-14",
+        "valor": 1500.0,
+        "descricao": "aluguel",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1780974646686,
+        "data": "2026-06-08",
+        "valor": 500.0,
+        "descricao": "aluguel",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1780974638687,
+        "data": "2026-06-08",
+        "valor": 1000.0,
+        "descricao": "pagamento",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1780970917834,
+        "data": "2026-06-08",
+        "valor": 1500.0,
+        "descricao": "pagamento",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      }
+    ],
+    "lixeira": [
+      {
+        "id": 1781019460871,
+        "data": "2026-06-09",
+        "valor": 800.0,
+        "descricao": "energia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠",
+        "apagadoEm": "2026-06-09T11:38:58.397988"
+      },
+      {
+        "id": 1780976152900,
+        "data": "2026-06-08",
+        "valor": 1500.0,
+        "descricao": "aluguel",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠",
+        "apagadoEm": "2026-06-08T23:38:41.294340"
+      }
+    ]
+  },
+  "test": {
+    "lancamentos": [
+      {
+        "id": 1780977174388,
+        "data": "2026-06-08",
+        "valor": 750.0,
+        "descricao": "aluguel",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1780977147662,
+        "data": "2026-06-08",
+        "valor": 1000.0,
+        "descricao": "salario",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      }
+    ],
+    "lixeira": []
+  }
+}
