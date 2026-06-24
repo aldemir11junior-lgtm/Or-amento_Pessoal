@@ -2,6 +2,24 @@
   "aldemir": {
     "lancamentos": [
       {
+        "id": 1780976152900,
+        "data": "2026-06-08",
+        "valor": 1500.0,
+        "descricao": "aluguel",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1781019460871,
+        "data": "2026-06-09",
+        "valor": 800.0,
+        "descricao": "energia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
         "id": 1781019429954,
         "data": "2026-06-09",
         "valor": 1500.0,
@@ -110,28 +128,7 @@
         "icone": "💵"
       }
     ],
-    "lixeira": [
-      {
-        "id": 1781019460871,
-        "data": "2026-06-09",
-        "valor": 800.0,
-        "descricao": "energia",
-        "tipo": "Fixo",
-        "classe": "Moradia",
-        "icone": "🏠",
-        "apagadoEm": "2026-06-09T11:38:58.397988"
-      },
-      {
-        "id": 1780976152900,
-        "data": "2026-06-08",
-        "valor": 1500.0,
-        "descricao": "aluguel",
-        "tipo": "Fixo",
-        "classe": "Moradia",
-        "icone": "🏠",
-        "apagadoEm": "2026-06-08T23:38:41.294340"
-      }
-    ]
+    "lixeira": []
   },
   "test": {
     "lancamentos": [
