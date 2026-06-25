@@ -330,6 +330,15 @@ if not st.session_state.logged_in:
                         lanc, lix = load_data(found["usuario"])
                         st.session_state.lancamentos = lanc
                         st.session_state.lixeira     = lix
+                        # Limpa itens apagados há mais de 30 dias ao fazer login
+                        hoje_login = datetime.now()
+                        st.session_state.lixeira = [
+                            l for l in st.session_state.lixeira
+                            if (hoje_login - datetime.fromisoformat(
+                                l.get("apagadoEm", hoje_login.isoformat())
+                            )).days <= 30
+                        ]
+                        save_data(found["usuario"], st.session_state.lancamentos, st.session_state.lixeira)
                         st.rerun()
         else:
             nu = st.text_input("👤 Novo usuário", key="reg_u")
@@ -365,6 +374,20 @@ def persistir():
         st.session_state.lancamentos, 
         st.session_state.lixeira
     )
+
+def limpar_lixeira_antiga():
+    """Remove itens apagados há mais de 30 dias automaticamente."""
+    if not st.session_state.lixeira:
+        return
+    hoje = datetime.now()
+    antes = len(st.session_state.lixeira)
+    st.session_state.lixeira = [
+        l for l in st.session_state.lixeira
+        if (hoje - datetime.fromisoformat(l.get("apagadoEm", hoje.isoformat()))).days <= 30
+    ]
+    depois = len(st.session_state.lixeira)
+    if antes != depois:
+        persistir()
 
 # ─── DARK MODE CSS DINÂMICO ───────────────────────────────────────────────────
 if st.session_state.tema_escuro:
@@ -409,7 +432,7 @@ with col_sair:
         st.rerun()
 
 # ─── NAVEGAÇÃO POR ABAS ───────────────────────────────────────────────────────
-pages = ["📊 Dashboard", "➕ Lançamentos", "📋 Histórico"]
+pages = ["📊 Dashboard", "➕ Lançamentos", "📋 Histórico", "⚙️ Conta"]
 if st.session_state.is_admin:
     pages.append("👥 Usuários")
 
@@ -418,6 +441,7 @@ PAGE_MAP = {
     "📊 Dashboard": "Dashboard",
     "➕ Lançamentos": "Lançamentos",
     "📋 Histórico": "Histórico",
+    "⚙️ Conta": "Conta",
     "👥 Usuários": "Usuários",
 }
 # Descobre índice atual
@@ -627,6 +651,9 @@ with selected_tab[0]:  # Dashboard
             name="Valor (R$)",
             marker_color=cores_barras,
             marker_line_width=0,
+            text=[f"R$ {v:,.0f}".replace(",","X").replace(".",",").replace("X",".") for v in vals_pareto],
+            textposition="outside",
+            textfont=dict(size=10, family="DM Sans"),
             hovertemplate="<b>%{x}</b><br>R$ %{y:,.2f}<extra></extra>"
         ))
         fig_pareto.add_trace(go.Scatter(
@@ -697,12 +724,16 @@ with selected_tab[0]:  # Dashboard
 
             cores_red = [red_gradient(i, n_top) for i in range(n_top)]
 
+            vals_rev = vals_top[::-1]
             fig_top = go.Figure(go.Bar(
                 y=itens_top[::-1],
-                x=vals_top[::-1],
+                x=vals_rev,
                 orientation="h",
                 marker_color=cores_red[::-1],
                 marker_line_width=0,
+                text=[f"R$ {v:,.2f}".replace(",","X").replace(".",",").replace("X",".") for v in vals_rev],
+                textposition="outside",
+                textfont=dict(size=10, family="DM Sans"),
                 hovertemplate="<b>%{y}</b><br>R$ %{x:,.2f}<extra></extra>"
             ))
             fig_top.update_layout(
@@ -804,6 +835,9 @@ with selected_tab[0]:  # Dashboard
             y=vals_sem,
             marker_color=cores_sem,
             marker_line_width=0,
+            text=[f"R$ {v:,.0f}".replace(",","X").replace(".",",").replace("X",".") if v > 0 else "" for v in vals_sem],
+            textposition="outside",
+            textfont=dict(size=10, family="DM Sans"),
             hovertemplate="<b>%{x}</b><br>R$ %{y:,.2f}<extra></extra>"
         ))
         fig_sem.update_layout(
@@ -958,7 +992,13 @@ with selected_tab[1]:  # Lançamentos
 
         if arquivo_excel:
             try:
-                df_excel = pd.read_excel(arquivo_excel)
+                try:
+                    import openpyxl  # noqa: F401
+                except ImportError:
+                    import subprocess, sys
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl", "--quiet"])
+                    import openpyxl  # noqa: F401
+                df_excel = pd.read_excel(arquivo_excel, engine="openpyxl")
             except Exception as e:
                 st.error(f"❌ Erro ao ler o arquivo: {e}")
                 df_excel = None
@@ -1063,6 +1103,21 @@ with selected_tab[1]:  # Lançamentos
 
                 if linhas_ok_x or linhas_rev_x:
                     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+                    total_para_importar = len(linhas_ok_x) + len(linhas_rev_x)
+                    st.markdown(f'<div style="font-size:0.78rem;color:#1a6645;margin-bottom:8px;">📋 <b>{total_para_importar}</b> linha(s) serão processadas ({len(linhas_ok_x)} prontas, {len(linhas_rev_x)} com revisão).</div>', unsafe_allow_html=True)
+
+                    # Exibe resultado da importação anterior (se houver) ANTES do botão
+                    if st.session_state.get("msg_importacao"):
+                        msg_tipo, msg_txt = st.session_state.msg_importacao
+                        if msg_tipo == "success":
+                            st.success(msg_txt)
+                        elif msg_tipo == "warning":
+                            st.warning(msg_txt)
+                        else:
+                            st.error(msg_txt)
+                        # Limpa após exibir para não repetir
+                        del st.session_state["msg_importacao"]
+
                     if st.button("✦ Importar todos os lançamentos", type="primary", use_container_width=True, key="btn_importar_excel"):
                         importados = 0
                         erros = 0
@@ -1104,10 +1159,18 @@ with selected_tab[1]:  # Lançamentos
                         persistir()
                         if "excel_revisao" in st.session_state:
                             del st.session_state.excel_revisao
-                        msg = f"✅ {importados} lançamento(s) importado(s)!"
-                        if erros:
-                            msg += f" · {erros} linha(s) ignorada(s) por dados incompletos."
-                        st.success(msg)
+
+                        # Guarda mensagem no session_state — será exibida APÓS o rerun
+                        if importados > 0 and erros == 0:
+                            st.session_state.msg_importacao = ("success",
+                                f"✅ Importação concluída! {importados} lançamento(s) adicionado(s) ao histórico.")
+                        elif importados > 0 and erros > 0:
+                            st.session_state.msg_importacao = ("warning",
+                                f"⚠️ Importação parcial: {importados} importado(s), {erros} linha(s) ignorada(s) por dados incompletos.")
+                        else:
+                            st.session_state.msg_importacao = ("error",
+                                f"❌ Nenhum lançamento importado. {erros} linha(s) com dados incompletos. Verifique data, valor e descrição.")
+
                         st.rerun()
 
 # ══════════════════════════════════════════════════════════════════
@@ -1151,7 +1214,8 @@ with selected_tab[2]:  # Histórico
 
     # ── Aba: Apagados ──
     with aba_hist[1]:
-        st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:12px;">Itens excluídos do histórico. Restaure ou exclua definitivamente.</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:8px;">Itens excluídos do histórico. Restaure ou exclua definitivamente.</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size:0.75rem;color:#c05e00;background:#fef9e7;border:1px solid #f9e79f;border-radius:8px;padding:8px 12px;margin-bottom:12px;">⏳ Itens ficam disponíveis por <b>30 dias</b> após a exclusão. Após esse prazo são removidos automaticamente.</div>', unsafe_allow_html=True)
 
         if not lixeira:
             st.info("Nenhum item apagado.")
@@ -1168,6 +1232,15 @@ with selected_tab[2]:  # Histórico
                 with col_val:
                     st.markdown(f'<div style="font-family:Syne,sans-serif;font-size:1.05rem;font-weight:700;color:#c0392b;padding:18px 0;">– {fmt_brl(l["valor"])}</div>', unsafe_allow_html=True)
                 with col_rest:
+                    # Calcular dias restantes
+                    try:
+                        apagado_em = datetime.fromisoformat(l.get("apagadoEm", datetime.now().isoformat()))
+                        dias_restantes = 30 - (datetime.now() - apagado_em).days
+                        dias_restantes = max(0, dias_restantes)
+                    except Exception:
+                        dias_restantes = 30
+                    cor_dias = "#c0392b" if dias_restantes <= 3 else ("#d97706" if dias_restantes <= 7 else "#1a6645")
+                    st.markdown(f'<div style="font-size:0.68rem;color:{cor_dias};font-weight:600;padding:4px 0;text-align:center;">🗓 {dias_restantes}d restantes</div>', unsafe_allow_html=True)
                     if st.button("↩️", key=f"rest_{l['id']}", help="Restaurar para Lançamentos"):
                         st.session_state.lancamentos.insert(0, {k: v for k, v in l.items() if k != "apagadoEm"})
                         st.session_state.lixeira.remove(l)
@@ -1183,7 +1256,33 @@ with selected_tab[2]:  # Histórico
 # ══════════════════════════════════════════════════════════════════
 # USUÁRIOS (ADMIN)
 # ══════════════════════════════════════════════════════════════════
-with selected_tab[3] if len(selected_tab) > 3 else selected_tab[0]:  # Usuários (admin)
+with selected_tab[3] if len(selected_tab) > 3 else selected_tab[0]:  # Conta
+    st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Minha <span style=\'color:#00704A\'>Conta</span></div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Altere sua senha de acesso quando quiser.</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="section-title">🔑 Alterar Senha</div>', unsafe_allow_html=True)
+    with st.form("form_trocar_senha"):
+        senha_atual = st.text_input("🔒 Senha atual", type="password", key="conta_atual")
+        senha_nova1 = st.text_input("🔒 Nova senha", type="password", key="conta_nova1")
+        senha_nova2 = st.text_input("🔒 Confirmar nova senha", type="password", key="conta_nova2")
+        if st.form_submit_button("💾 Salvar nova senha", type="primary", use_container_width=True):
+            if not senha_atual or not senha_nova1 or not senha_nova2:
+                st.warning("Preencha todos os campos.")
+            elif len(senha_nova1) < 3:
+                st.warning("A nova senha deve ter pelo menos 3 caracteres.")
+            elif senha_nova1 != senha_nova2:
+                st.error("As novas senhas não conferem.")
+            else:
+                usuarios_conta = load_users()
+                u_conta = next((u for u in usuarios_conta if u["usuario"].lower() == st.session_state.username.lower()), None)
+                if not u_conta or u_conta["senha"] != hash_pw(senha_atual):
+                    st.error("Senha atual incorreta.")
+                else:
+                    u_conta["senha"] = hash_pw(senha_nova1)
+                    save_users(usuarios_conta)
+                    st.success("✅ Senha alterada com sucesso!")
+
+with selected_tab[4] if len(selected_tab) > 4 else selected_tab[0]:  # Usuários (admin)
     if not st.session_state.is_admin:
         st.error("Acesso restrito ao administrador.")
     else:
