@@ -3,15 +3,16 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, date, timedelta
-import json, hashlib, os
+import json, hashlib, os, io
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="FinançasPro", layout="wide",
                    initial_sidebar_state="collapsed")
 
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
-USERS_FILE = os.path.join(BASE_DIR, "fp_usuarios.json")
-DATA_FILE  = os.path.join(BASE_DIR, "fp_dados.json")
+BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
+USERS_FILE     = os.path.join(BASE_DIR, "fp_usuarios.json")
+DATA_FILE      = os.path.join(BASE_DIR, "fp_dados.json")
+CATEGORIAS_FILE = os.path.join(BASE_DIR, "fp_categorias.json")
 
 # ─── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -223,7 +224,90 @@ def save_data(usuario, lancamentos, lixeira):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(all_data, f, ensure_ascii=False, indent=2)
 
-# ─── CLASSIFICAÇÃO AUTOMÁTICA ─────────────────────────────────────────────────
+# ─── CATEGORIAS / DESCRIÇÕES (tabela de-para importável via Excel) ────────────
+# Planilha padrão de Categoria x Descrição de Despesas, aplicada a todos os usuários
+# até que cada um importe sua própria planilha personalizada na aba Descrições.
+DESPESAS_PADRAO_BRUTO = [
+    ("Casa", ["Aluguel", "Financiamento", "Condomínio", "IPTU", "Energia elétrica", "Água", "Gás", "Internet", "Telefone", "Manutenção", "Móveis", "Eletrodomésticos", "Material de limpeza", "Seguro residencial", "Decoração"]),
+    ("Mercado", ["Alimentação", "Bebidas", "Higiene pessoal", "Produtos de limpeza", "Ração para pets", "Descartáveis"]),
+    ("Carro", ["Combustível", "Seguro", "IPVA", "Licenciamento", "Manutenção", "Troca de óleo", "Pneus", "Lavagem", "Estacionamento", "Pedágio", "Multas", "Financiamento", "Acessórios"]),
+    ("Moto", ["Combustível", "Seguro", "IPVA", "Licenciamento", "Manutenção", "Troca de óleo", "Pneus", "Lavagem", "Estacionamento", "Multas", "Financiamento", "Capacete e equipamentos"]),
+    ("Saúde", ["Plano de saúde", "Consultas", "Exames", "Medicamentos", "Odontologia", "Óculos/Lentes", "Terapias", "Vacinas"]),
+    ("Educação", ["Mensalidade", "Cursos", "Livros", "Material escolar", "Transporte", "Certificações"]),
+    ("Lazer", ["Cinema", "Streaming", "Viagens", "Hotéis", "Passeios", "Bares", "Restaurantes", "Eventos", "Jogos", "Hobbies"]),
+    ("Presentes", ["Aniversário", "Casamento", "Natal", "Dia das Mães", "Dia dos Pais", "Outros presentes"]),
+    ("Investimentos", ["Reserva de emergência", "Tesouro", "CDB", "LCI/LCA", "Ações", "FIIs", "ETFs", "Criptomoedas", "Previdência privada"]),
+    ("Pets", ["Veterinário", "Ração", "Banho e tosa", "Medicamentos", "Brinquedos", "Vacinas"]),
+    ("Roupas", ["Roupas", "Calçados", "Acessórios", "Lavanderia"]),
+    ("Impostos", ["IR", "Taxas", "Contabilidade"]),
+    ("Trabalho", ["Ferramentas", "Equipamentos", "Software", "Cursos", "Deslocamento"]),
+    ("Tecnologia", ["Celular", "Computador", "Periféricos", "Aplicativos", "Armazenamento em nuvem"]),
+    ("Assinaturas", ["Música", "Vídeo", "Academia", "Jornais", "Softwares"]),
+    ("Filhos", ["Escola", "Fraldas", "Roupas", "Brinquedos", "Material escolar", "Saúde"]),
+    ("Doações", ["Instituições", "Igreja", "Campanhas"]),
+    ("Financeiro", ["Tarifas bancárias", "Juros", "IOF", "Anuidade de cartão"]),
+]
+
+def _despesas_padrao():
+    return [{"categoria": cat, "descricao": desc} for cat, descs in DESPESAS_PADRAO_BRUTO for desc in descs]
+
+# Planilha padrão de Categoria x Descrição de Receitas, aplicada a todos os usuários
+# até que cada um importe sua própria planilha personalizada na aba Descrições.
+RECEITAS_PADRAO_BRUTO = [
+    ("Trabalho", ["Salário", "13º Salário", "Férias", "Comissão", "Bônus", "PLR (Participação nos Lucros)", "Hora Extra", "Adicional Noturno", "Vale Alimentação/Refeição"]),
+    ("Investimentos", ["Dividendos", "Juros sobre Capital Próprio", "Rendimento de Poupança", "Rendimento de CDB/Tesouro", "Aluguel Recebido", "Venda de Ações", "Venda de Imóvel", "Venda de Veículo"]),
+    ("Freelance", ["Freelance", "Consultoria", "Serviços Prestados", "Comissão de Vendas"]),
+    ("Extras", ["Restituição de Imposto de Renda", "Reembolso", "Prêmio/Sorteio", "Cashback", "Venda de Itens Usados"]),
+    ("Outros", ["Presente Recebido", "Herança", "Empréstimo Recebido", "Pensão/Auxílio", "Renda Extra"]),
+]
+
+def _receitas_padrao():
+    return [{"categoria": cat, "descricao": desc} for cat, descs in RECEITAS_PADRAO_BRUTO for desc in descs]
+
+def load_categorias(usuario):
+    if os.path.exists(CATEGORIAS_FILE):
+        with open(CATEGORIAS_FILE, "r", encoding="utf-8") as f:
+            try:
+                all_data = json.load(f)
+            except json.JSONDecodeError:
+                all_data = {}
+    else:
+        all_data = {}
+    bruto = all_data.get(usuario.lower(), {})
+    if isinstance(bruto, list):  # formato antigo, anterior à separação Despesa/Receita
+        despesa_lista = bruto if bruto else _despesas_padrao()
+        return {"despesa": despesa_lista, "receita": _receitas_padrao()}
+    despesa_lista = bruto.get("despesa", [])
+    if not despesa_lista:
+        despesa_lista = _despesas_padrao()  # planilha padrão até o usuário importar a sua própria
+    receita_lista = bruto.get("receita", [])
+    if not receita_lista:
+        receita_lista = _receitas_padrao()  # planilha padrão até o usuário importar a sua própria
+    return {"despesa": despesa_lista, "receita": receita_lista}
+
+def save_categorias(usuario, mapa):
+    if os.path.exists(CATEGORIAS_FILE):
+        with open(CATEGORIAS_FILE, "r", encoding="utf-8") as f:
+            try:
+                all_data = json.load(f)
+            except json.JSONDecodeError:
+                all_data = {}
+    else:
+        all_data = {}
+    all_data[usuario.lower()] = mapa
+    with open(CATEGORIAS_FILE, "w", encoding="utf-8") as f:
+        json.dump(all_data, f, ensure_ascii=False, indent=2)
+
+def categorias_disponiveis(tipo_chave):
+    lista = st.session_state.categorias_map.get(tipo_chave, [])
+    return sorted({c["categoria"] for c in lista if c.get("categoria")})
+
+def descricoes_disponiveis(tipo_chave, categoria):
+    lista = st.session_state.categorias_map.get(tipo_chave, [])
+    return sorted({c["descricao"] for c in lista
+                    if c.get("categoria") == categoria and c.get("descricao")})
+
+# ─── CLASSIFICAÇÃO AUTOMÁTICA (usada apenas na importação de extrato em lote) ──
 REGRAS = [
     {"palavras": ["salário","salario","pagamento","freelance","renda","receita","honorário","honorario","pró-labore","prolabore","dividendo"],
      "tipo": "Receita", "classe": "Receita", "icone": "💵"},
@@ -274,9 +358,10 @@ def badge_classe(cls):
     return f'<span class="badge badge-{mapa.get(cls,"outros")}">{cls}</span>'
 
 def badge_tipo(tipo):
-    if tipo == "Receita": return '<span class="badge badge-receita">Receita</span>'
-    if tipo == "Fixo":    return '<span class="badge badge-fixo">Fixo</span>'
-    return '<span class="badge badge-variavel">Variável</span>'
+    if tipo == "Receita":  return '<span class="badge badge-receita">Receita</span>'
+    if tipo == "Fixo":     return '<span class="badge badge-fixo">Fixo</span>'
+    if tipo == "Variável": return '<span class="badge badge-variavel">Variável</span>'
+    return '<span class="badge badge-fixo">Despesa</span>'
 
 # ─── SESSION STATE ────────────────────────────────────────────────────────────
 def _ss(k, v):
@@ -285,6 +370,8 @@ def _ss(k, v):
 _ss("logged_in", False); _ss("username", ""); _ss("is_admin", False)
 _ss("page", "Dashboard")
 _ss("lancamentos", []); _ss("lixeira", [])
+_ss("categorias_map", {"despesa": [], "receita": []})
+_ss("editando_lanc_id", None)
 _ss("tema_escuro", False)
 
 # ══════════════════════════════════════════════════════════════════
@@ -330,6 +417,7 @@ if not st.session_state.logged_in:
                         lanc, lix = load_data(found["usuario"])
                         st.session_state.lancamentos = lanc
                         st.session_state.lixeira     = lix
+                        st.session_state.categorias_map = load_categorias(found["usuario"])
                         # Limpa itens apagados há mais de 30 dias ao fazer login
                         hoje_login = datetime.now()
                         st.session_state.lixeira = [
@@ -374,6 +462,9 @@ def persistir():
         st.session_state.lancamentos, 
         st.session_state.lixeira
     )
+
+def persistir_categorias():
+    save_categorias(st.session_state.username, st.session_state.categorias_map)
 
 def limpar_lixeira_antiga():
     """Remove itens apagados há mais de 30 dias automaticamente."""
@@ -432,7 +523,7 @@ with col_sair:
         st.rerun()
 
 # ─── NAVEGAÇÃO POR ABAS ───────────────────────────────────────────────────────
-pages = ["📊 Dashboard", "➕ Lançamentos", "📋 Histórico", "⚙️ Conta"]
+pages = ["📊 Dashboard", "➕ Lançamentos", "📋 Histórico", "🏷️ Descrições", "⚙️ Conta"]
 if st.session_state.is_admin:
     pages.append("👥 Usuários")
 
@@ -441,6 +532,7 @@ PAGE_MAP = {
     "📊 Dashboard": "Dashboard",
     "➕ Lançamentos": "Lançamentos",
     "📋 Histórico": "Histórico",
+    "🏷️ Descrições": "Descrições",
     "⚙️ Conta": "Conta",
     "👥 Usuários": "Usuários",
 }
@@ -920,6 +1012,40 @@ with selected_tab[0]:  # Dashboard
                   </div>
                 </div>""", unsafe_allow_html=True)
 
+    # ── Gastos por Categoria/Veículo (segmentação extra, ex: Moto) ──
+    despesas_com_cat_extra = [l for l in despesas if l.get("categoria_extra")]
+    if despesas_com_cat_extra:
+        st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🏷️ Gastos por Categoria/Veículo</div>', unsafe_allow_html=True)
+        st.caption("Segmentação extra informada nos lançamentos (ex: Moto, Carro, Casa).")
+
+        cat_extra_map = {}
+        for l in despesas_com_cat_extra:
+            cat_extra_map[l["categoria_extra"]] = cat_extra_map.get(l["categoria_extra"], 0) + l["valor"]
+
+        sorted_cat_extra = sorted(cat_extra_map.items(), key=lambda x: -x[1])
+        nomes_cat_extra = [c[0] for c in sorted_cat_extra]
+        vals_cat_extra  = [c[1] for c in sorted_cat_extra]
+
+        fig_cat_extra = go.Figure(go.Bar(
+            x=nomes_cat_extra,
+            y=vals_cat_extra,
+            marker_color="#00704A",
+            marker_line_width=0,
+            text=[f"R$ {v:,.0f}".replace(",","X").replace(".",",").replace("X",".") for v in vals_cat_extra],
+            textposition="outside",
+            textfont=dict(size=10, family="DM Sans"),
+            hovertemplate="<b>%{x}</b><br>R$ %{y:,.2f}<extra></extra>"
+        ))
+        fig_cat_extra.update_layout(
+            paper_bgcolor="white", plot_bgcolor="#f4faf7",
+            height=260, margin=dict(t=10, b=20, l=10, r=10),
+            showlegend=False, font=dict(family="DM Sans"),
+            yaxis=dict(tickprefix="R$ ", gridcolor="#eef5f1"),
+            xaxis=dict(gridcolor="rgba(0,0,0,0)")
+        )
+        st.plotly_chart(fig_cat_extra, use_container_width=True)
+
     # ── Últimos Lançamentos ──
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Últimos Lançamentos no Período</div>', unsafe_allow_html=True)
@@ -933,6 +1059,7 @@ with selected_tab[0]:  # Dashboard
             sinal = "+" if l["tipo"] == "Receita" else "-"
             rows.append({"Data": data_fmt, "Descrição": f"{l['icone']} {l['descricao']}",
                          "Tipo": l["tipo"], "Categoria": l["classe"],
+                         "Categoria/Veículo": l.get("categoria_extra", "") or "—",
                          "Valor": f"{sinal} {fmt_brl(l['valor'])}"})
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
@@ -941,41 +1068,59 @@ with selected_tab[0]:  # Dashboard
 # ══════════════════════════════════════════════════════════════════
 with selected_tab[1]:  # Lançamentos
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Novo <span style=\'color:#00704A\'>Lançamento</span></div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Informe data, valor e descrição — a categoria é detectada automaticamente.</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Informe data e valor, e escolha a Categoria (visão macro) e a Descrição (detalhe) cadastradas na aba 🏷️ Descrições.</div>', unsafe_allow_html=True)
 
     aba_lanc = st.tabs(["✏️ Lançamento Manual", "📂 Importar Excel"])
 
     # ── Manual ──
+    # Fora de st.form de propósito: Categoria e Descrição são amarradas (a 2ª depende da 1ª),
+    # e formulários do Streamlit só atualizam ao enviar — os selects precisam reagir na hora.
     with aba_lanc[0]:
-        with st.form("form_lancamento", clear_on_submit=True):
-            c1, c2 = st.columns(2)
-            with c1:
-                data_input = st.date_input("📅 Data", value=date.today())
-            with c2:
-                valor_input = st.number_input("💰 Valor (R$)", min_value=0.01, step=0.01, format="%.2f")
-            desc_input = st.text_input("📝 Descrição", placeholder="Ex: Conta de luz, Supermercado, Salário...")
+        c1, c2 = st.columns(2)
+        with c1:
+            data_input = st.date_input("📅 Data", value=date.today(), key="ml_data")
+        with c2:
+            valor_input = st.number_input("💰 Valor (R$)", min_value=0.01, step=0.01, format="%.2f", key="ml_valor")
 
-            if desc_input and len(desc_input) >= 3:
-                tipo_det, cls_det, ico_det = classificar(desc_input)
-                st.info(f"{ico_det} Detectado automaticamente: **{cls_det}** · {tipo_det}")
+        tipo_input_lbl = st.radio("Tipo", ["💵 Receita", "💸 Despesa"], horizontal=True, key="ml_tipo")
+        TIPO_LBL_MAP = {"💵 Receita": "Receita", "💸 Despesa": "Despesa"}
+        tipo_final = TIPO_LBL_MAP[tipo_input_lbl]
+        tipo_chave = "receita" if tipo_final == "Receita" else "despesa"
 
-            submitted = st.form_submit_button("✦ Registrar Lançamento", type="primary", use_container_width=True)
-            if submitted:
-                if not desc_input:
-                    st.error("Preencha a descrição.")
+        categorias_opts = categorias_disponiveis(tipo_chave)
+        categoria_input, descricao_input = None, None
+        if not categorias_opts:
+            st.warning(f"⚠️ Nenhuma categoria de {tipo_final} cadastrada ainda. Vá até a aba **🏷️ Descrições** e importe a planilha correspondente antes de registrar um lançamento manual.")
+        else:
+            cc1, cc2 = st.columns(2)
+            with cc1:
+                categoria_input = st.selectbox("🏷️ Categoria", categorias_opts, key=f"ml_categoria_{tipo_chave}")
+            with cc2:
+                desc_opts = descricoes_disponiveis(tipo_chave, categoria_input)
+                if desc_opts:
+                    descricao_input = st.selectbox("📝 Descrição", desc_opts, key=f"ml_descricao_{tipo_chave}")
                 else:
-                    tipo, cls, ico = classificar(desc_input)
-                    novo = {
-                        "id": int(datetime.now().timestamp() * 1000),
-                        "data": str(data_input),
-                        "valor": float(valor_input),
-                        "descricao": desc_input.strip(),
-                        "tipo": tipo, "classe": cls, "icone": ico,
-                    }
-                    st.session_state.lancamentos.insert(0, novo)
-                    persistir()
-                    st.success(f"✅ Registrado: {ico} {cls} — {fmt_brl(valor_input)}")
-                    st.rerun()
+                    st.warning("Nenhuma descrição cadastrada para essa categoria na planilha.")
+
+        if st.button("✦ Registrar Lançamento", type="primary", use_container_width=True, key="ml_submit"):
+            if not categoria_input or not descricao_input:
+                st.error("Selecione uma Categoria e uma Descrição válidas.")
+            else:
+                icone_final = {"Receita": "💵", "Despesa": "💸"}[tipo_final]
+                novo = {
+                    "id": int(datetime.now().timestamp() * 1000),
+                    "data": str(data_input),
+                    "valor": float(valor_input),
+                    "descricao": descricao_input,
+                    "categoria_extra": "",
+                    "tipo": tipo_final, "classe": categoria_input, "icone": icone_final,
+                }
+                st.session_state.lancamentos.insert(0, novo)
+                persistir()
+                st.success(f"✅ Registrado: {icone_final} {categoria_input} · {descricao_input} — {fmt_brl(valor_input)}")
+                if "ml_valor" in st.session_state:
+                    del st.session_state["ml_valor"]
+                st.rerun()
 
     # ── Importar Excel ──
     with aba_lanc[1]:
@@ -987,6 +1132,13 @@ with selected_tab[1]:  # Lançamentos
         Linhas não identificadas serão listadas para preenchimento manual.
         </div>
         """, unsafe_allow_html=True)
+
+        tipo_import_excel = st.radio(
+            "O que você está importando?",
+            ["💰 Receitas", "💸 Despesas"],
+            horizontal=True, key="tipo_import_excel"
+        )
+        eh_receita_import = tipo_import_excel == "💰 Receitas"
 
         arquivo_excel = st.file_uploader("Selecionar arquivo Excel", type=["xlsx", "xls"], key="excel_uploader")
 
@@ -1013,9 +1165,51 @@ with selected_tab[1]:  # Lançamentos
                             return c
                     return None
 
-                col_data_x  = encontrar_col(df_excel, ["data","date","dt","dia"])
-                col_valor_x = encontrar_col(df_excel, ["valor","value","quantia","montante","vl","amount","total"])
-                col_desc_x  = encontrar_col(df_excel, ["descri","desc","historico","hist","memo","observ","detalhe","título","titulo","nome"])
+                col_data_auto  = encontrar_col(df_excel, ["data","date","dt","dia"])
+                col_valor_auto = encontrar_col(df_excel, ["valor","value","quantia","montante","vl","amount","total","preço","preco","price"])
+                col_desc_auto  = encontrar_col(df_excel, ["descri","desc","historico","hist","memo","observ","detalhe","título","titulo","nome"])
+
+                colunas_disp = df_excel.columns.tolist()
+
+                st.markdown('<div style="font-size:0.78rem;color:#1a6645;margin:6px 0 4px;">📌 Colunas detectadas automaticamente. Ajuste abaixo se algo estiver errado:</div>', unsafe_allow_html=True)
+                cc1, cc2, cc3 = st.columns(3)
+                with cc1:
+                    col_data_x = st.selectbox(
+                        "📅 Coluna de Data",
+                        colunas_disp,
+                        index=colunas_disp.index(col_data_auto) if col_data_auto in colunas_disp else 0,
+                        key="col_data_x_sel"
+                    )
+                with cc2:
+                    col_valor_x = st.selectbox(
+                        "💰 Coluna de Valor",
+                        colunas_disp,
+                        index=colunas_disp.index(col_valor_auto) if col_valor_auto in colunas_disp else 0,
+                        key="col_valor_x_sel"
+                    )
+                with cc3:
+                    col_desc_x = st.selectbox(
+                        "📝 Coluna de Descrição",
+                        colunas_disp,
+                        index=colunas_disp.index(col_desc_auto) if col_desc_auto in colunas_disp else 0,
+                        key="col_desc_x_sel"
+                    )
+
+                usar_cat_extra_despesa = False
+                col_cat_extra_x = None
+                if not eh_receita_import:
+                    usar_cat_extra_despesa = st.checkbox(
+                        "Usar uma coluna como Categoria/Veículo (ex: Moto) para poder segmentar os gastos depois",
+                        key="usar_cat_extra_despesa_check"
+                    )
+                    if usar_cat_extra_despesa:
+                        col_cat_extra_x = st.selectbox(
+                            "🏷️ Coluna que representa a Categoria/Veículo",
+                            colunas_disp,
+                            index=0,
+                            key="col_cat_extra_x_sel",
+                            help="Essa informação fica salva separada da descrição, permitindo somar/filtrar depois (ex: total gasto com Moto)."
+                        )
 
                 linhas_ok_x  = []
                 linhas_rev_x = []
@@ -1024,6 +1218,13 @@ with selected_tab[1]:  # Lançamentos
                     d_val = row[col_data_x]  if col_data_x  else None
                     v_val = row[col_valor_x] if col_valor_x else None
                     s_val = row[col_desc_x]  if col_desc_x  else None
+                    cat_extra_val = ""
+                    if usar_cat_extra_despesa and col_cat_extra_x:
+                        cev = row[col_cat_extra_x]
+                        try:
+                            cat_extra_val = str(cev).strip() if not pd.isna(cev) else ""
+                        except (TypeError, ValueError):
+                            cat_extra_val = str(cev).strip() if cev is not None else ""
 
                     d_ok, d_parsed = False, None
                     if d_val is not None and not (isinstance(d_val, float) and pd.isna(d_val)):
@@ -1036,7 +1237,14 @@ with selected_tab[1]:  # Lançamentos
                     v_ok, v_parsed = False, None
                     if v_val is not None and not (isinstance(v_val, float) and pd.isna(v_val)):
                         try:
-                            v_parsed = float(str(v_val).replace("R$","").replace(".","").replace(",",".").strip())
+                            if isinstance(v_val, (int, float)):
+                                v_parsed = float(v_val)
+                            else:
+                                v_str = str(v_val).replace("R$", "").strip()
+                                if "," in v_str:
+                                    # Formato BR: ponto = milhar, vírgula = decimal
+                                    v_str = v_str.replace(".", "").replace(",", ".")
+                                v_parsed = float(v_str)
                             if v_parsed > 0:
                                 v_ok = True
                         except Exception:
@@ -1049,18 +1257,24 @@ with selected_tab[1]:  # Lançamentos
                             s_ok = True
 
                     if d_ok and v_ok and s_ok:
-                        linhas_ok_x.append({"idx": idx, "data": d_parsed, "valor": v_parsed, "desc": s_parsed})
+                        linhas_ok_x.append({"idx": idx, "data": d_parsed, "valor": v_parsed, "desc": s_parsed, "cat_extra": cat_extra_val})
                     else:
                         linhas_rev_x.append({"idx": idx, "d_ok": d_ok, "d_val": d_parsed or d_val,
                                              "v_ok": v_ok, "v_val": v_parsed or v_val,
-                                             "s_ok": s_ok, "s_val": s_parsed or s_val})
+                                             "s_ok": s_ok, "s_val": s_parsed or s_val, "cat_extra": cat_extra_val})
 
                 if linhas_ok_x:
                     st.markdown(f'<div class="section-title">✅ {len(linhas_ok_x)} linha(s) prontas para importar</div>', unsafe_allow_html=True)
                     for item in linhas_ok_x[:5]:
-                        tipo_p, cls_p, ico_p = classificar(item["desc"])
+                        if eh_receita_import:
+                            tipo_p, cls_p, ico_p = "Receita", "Receita", "💵"
+                        else:
+                            tipo_p, cls_p, ico_p = classificar(item["desc"])
+                            if tipo_p == "Receita":
+                                tipo_p, cls_p, ico_p = "Variável", "Outros", "📌"
+                        cat_extra_tag = f' · 🏷️ {item["cat_extra"]}' if item.get("cat_extra") else ""
                         st.markdown(f"""<div class="excel-row excel-row-ok">
-                          <span style="font-size:0.72rem;color:#1a6645;">{item['data'].strftime('%d/%m/%Y')} · {badge_tipo(tipo_p)} {badge_classe(cls_p)}</span><br>
+                          <span style="font-size:0.72rem;color:#1a6645;">{item['data'].strftime('%d/%m/%Y')} · {badge_tipo(tipo_p)} {badge_classe(cls_p)}{cat_extra_tag}</span><br>
                           <span style="font-size:0.9rem;font-weight:600;">{ico_p} {item['desc']}</span>
                           <span style="float:right;font-family:Syne,sans-serif;color:#00704A;font-weight:700;">{fmt_brl(item['valor'])}</span>
                         </div>""", unsafe_allow_html=True)
@@ -1096,7 +1310,12 @@ with selected_tab[1]:  # Lançamentos
                             s_final = item["s_val"] if item["s_ok"] else desc_rev
 
                             if s_final and len(str(s_final)) >= 2:
-                                t_p, c_p, i_p = classificar(str(s_final))
+                                if eh_receita_import:
+                                    t_p, c_p, i_p = "Receita", "Receita", "💵"
+                                else:
+                                    t_p, c_p, i_p = classificar(str(s_final))
+                                    if t_p == "Receita":
+                                        t_p, c_p, i_p = "Variável", "Outros", "📌"
                                 st.caption(f"{i_p} Categoria detectada: **{c_p}** · {t_p}")
 
                             st.session_state.excel_revisao[idx] = {"data": d_final, "valor": v_final, "desc": s_final}
@@ -1124,12 +1343,18 @@ with selected_tab[1]:  # Lançamentos
                         ts_base = int(datetime.now().timestamp() * 1000)
 
                         for i, item in enumerate(linhas_ok_x):
-                            tipo_i, cls_i, ico_i = classificar(item["desc"])
+                            if eh_receita_import:
+                                tipo_i, cls_i, ico_i = "Receita", "Receita", "💵"
+                            else:
+                                tipo_i, cls_i, ico_i = classificar(item["desc"])
+                                if tipo_i == "Receita":
+                                    tipo_i, cls_i, ico_i = "Variável", "Outros", "📌"
                             st.session_state.lancamentos.insert(0, {
                                 "id": ts_base + i,
                                 "data": str(item["data"]),
                                 "valor": float(item["valor"]),
                                 "descricao": item["desc"],
+                                "categoria_extra": item.get("cat_extra", ""),
                                 "tipo": tipo_i, "classe": cls_i, "icone": ico_i,
                             })
                             importados += 1
@@ -1142,12 +1367,18 @@ with selected_tab[1]:  # Lançamentos
                             s_f = item["s_val"] if item["s_ok"] else rev.get("desc")
                             if d_f and v_f and s_f and len(str(s_f)) >= 2:
                                 try:
-                                    tipo_j, cls_j, ico_j = classificar(str(s_f))
+                                    if eh_receita_import:
+                                        tipo_j, cls_j, ico_j = "Receita", "Receita", "💵"
+                                    else:
+                                        tipo_j, cls_j, ico_j = classificar(str(s_f))
+                                        if tipo_j == "Receita":
+                                            tipo_j, cls_j, ico_j = "Variável", "Outros", "📌"
                                     d_str = str(d_f) if isinstance(d_f, date) else str(d_f)[:10]
                                     st.session_state.lancamentos.insert(0, {
                                         "id": ts_base + len(linhas_ok_x) + j,
                                         "data": d_str, "valor": float(v_f),
                                         "descricao": str(s_f).strip(),
+                                        "categoria_extra": item.get("cat_extra", ""),
                                         "tipo": tipo_j, "classe": cls_j, "icone": ico_j,
                                     })
                                     importados += 1
@@ -1187,29 +1418,102 @@ with selected_tab[2]:  # Histórico
         if not lancamentos:
             st.info("Nenhum lançamento registrado ainda.")
         else:
-            filtro = st.radio("Filtrar:", ["Todos", "Fixo", "Variável", "Receita"],
+            filtro = st.radio("Filtrar:", ["Todos", "Receita", "Despesa", "Fixo", "Variável"],
                               horizontal=True, label_visibility="collapsed")
             lista = lancamentos if filtro == "Todos" else [l for l in lancamentos if l["tipo"] == filtro]
+
+            categorias_extra_disp = sorted({l.get("categoria_extra", "") for l in lista if l.get("categoria_extra")})
+            if categorias_extra_disp:
+                filtro_cat_extra = st.selectbox(
+                    "🏷️ Filtrar por Categoria/Veículo:",
+                    ["Todas"] + categorias_extra_disp,
+                    key="filtro_cat_extra_lanc"
+                )
+                if filtro_cat_extra != "Todas":
+                    lista = [l for l in lista if l.get("categoria_extra", "") == filtro_cat_extra]
 
             for l in lista:
                 d = l["data"].split("-"); data_fmt = f"{d[2]}/{d[1]}/{d[0]}"
                 sinal = "+" if l["tipo"] == "Receita" else "-"
                 cor_val = "#00704A" if l["tipo"] == "Receita" else "#c0392b"
-                col_info, col_val, col_btn = st.columns([5, 2, 1])
+                cat_extra_tag = f' · 🏷️ {l["categoria_extra"]}' if l.get("categoria_extra") else ""
+                col_info, col_val, col_edit, col_btn = st.columns([5, 2, 0.8, 0.8])
                 with col_info:
                     st.markdown(f"""<div style="background:#fff;border-radius:10px;padding:12px 16px;
                       border:1.5px solid #b8e8d4;margin-bottom:6px;">
-                      <div style="font-size:0.72rem;color:#1a6645;">{data_fmt} · {badge_tipo(l['tipo'])} {badge_classe(l['classe'])}</div>
+                      <div style="font-size:0.72rem;color:#1a6645;">{data_fmt} · {badge_tipo(l['tipo'])} {badge_classe(l['classe'])}{cat_extra_tag}</div>
                       <div style="font-size:0.92rem;font-weight:600;color:#0d2b1e;margin-top:3px;">{l['icone']} {l['descricao']}</div>
                     </div>""", unsafe_allow_html=True)
                 with col_val:
                     st.markdown(f'<div style="font-family:Syne,sans-serif;font-size:1.05rem;font-weight:700;color:{cor_val};padding:18px 0;">{sinal} {fmt_brl(l["valor"])}</div>', unsafe_allow_html=True)
+                with col_edit:
+                    if st.button("✏️", key=f"edit_{l['id']}", help="Editar lançamento"):
+                        st.session_state.editando_lanc_id = l['id']
+                        st.rerun()
                 with col_btn:
                     if st.button("🗑", key=f"del_{l['id']}", help="Mover para Apagados"):
                         l["apagadoEm"] = datetime.now().isoformat()
                         st.session_state.lixeira.insert(0, l)
                         st.session_state.lancamentos.remove(l)
                         persistir()
+                        st.rerun()
+
+                if st.session_state.get("editando_lanc_id") == l["id"]:
+                    ICONE_TIPO_EDIT = {"Receita": "💵", "Despesa": "💸"}
+                    tipos_edit_opts = ["Receita", "Despesa"]
+
+                    st.markdown(f'<div class="section-title">✏️ Editando lançamento</div>', unsafe_allow_html=True)
+                    try:
+                        data_val_edit = datetime.strptime(l["data"], "%Y-%m-%d").date()
+                    except Exception:
+                        data_val_edit = date.today()
+                    ec1, ec2 = st.columns(2)
+                    with ec1:
+                        data_edit = st.date_input("📅 Data", value=data_val_edit, key=f"edit_d_{l['id']}")
+                        valor_edit = st.number_input("💰 Valor", min_value=0.01, value=max(float(l["valor"]), 0.01), step=0.01, format="%.2f", key=f"edit_v_{l['id']}")
+                    with ec2:
+                        # Lançamentos antigos podem ter tipo "Fixo"/"Variável"; tratamos como Despesa por padrão.
+                        idx_tipo_edit = 0 if l["tipo"] == "Receita" else 1
+                        tipo_edit = st.selectbox("Tipo", tipos_edit_opts, index=idx_tipo_edit, key=f"edit_t_{l['id']}")
+                        tipo_chave_edit = "receita" if tipo_edit == "Receita" else "despesa"
+
+                        # Categoria/Descrição amarradas: precisam ficar fora de st.form para reagir na hora.
+                        categorias_opts_edit = categorias_disponiveis(tipo_chave_edit)
+                        if l["classe"] not in categorias_opts_edit:
+                            categorias_opts_edit = sorted(set(categorias_opts_edit) | {l["classe"]})
+                        classe_edit = st.selectbox("🏷️ Categoria", categorias_opts_edit,
+                                                    index=categorias_opts_edit.index(l["classe"]),
+                                                    key=f"edit_c_{l['id']}_{tipo_chave_edit}")
+
+                    desc_opts_edit = descricoes_disponiveis(tipo_chave_edit, classe_edit)
+                    if l["descricao"] not in desc_opts_edit:
+                        desc_opts_edit = sorted(set(desc_opts_edit) | {l["descricao"]})
+                    desc_edit = st.selectbox("📝 Descrição", desc_opts_edit,
+                                              index=desc_opts_edit.index(l["descricao"]),
+                                              key=f"edit_s_{l['id']}_{tipo_chave_edit}_{classe_edit}")
+                    cat_extra_edit = st.text_input("🏷️ Categoria/Veículo (opcional)", value=l.get("categoria_extra", ""),
+                                                    placeholder="Ex: Moto, Carro, Casa...", key=f"edit_cat_{l['id']}")
+
+                    col_save_e, col_cancel_e = st.columns(2)
+                    with col_save_e:
+                        salvar_edit = st.button("💾 Salvar alterações", type="primary", use_container_width=True, key=f"edit_save_{l['id']}")
+                    with col_cancel_e:
+                        cancelar_edit = st.button("✕ Cancelar", use_container_width=True, key=f"edit_cancel_{l['id']}")
+
+                    if salvar_edit:
+                        l["data"] = str(data_edit)
+                        l["valor"] = float(valor_edit)
+                        l["descricao"] = desc_edit
+                        l["tipo"] = tipo_edit
+                        l["classe"] = classe_edit
+                        l["categoria_extra"] = cat_extra_edit.strip()
+                        l["icone"] = ICONE_TIPO_EDIT.get(tipo_edit, "💸")
+                        persistir()
+                        st.session_state.editando_lanc_id = None
+                        st.success("✅ Lançamento atualizado com sucesso!")
+                        st.rerun()
+                    if cancelar_edit:
+                        st.session_state.editando_lanc_id = None
                         st.rerun()
 
     # ── Aba: Apagados ──
@@ -1254,9 +1558,102 @@ with selected_tab[2]:  # Histórico
                         st.rerun()
 
 # ══════════════════════════════════════════════════════════════════
-# USUÁRIOS (ADMIN)
+# DESCRIÇÕES (tabela de-para Categoria x Descrição, importável via Excel)
 # ══════════════════════════════════════════════════════════════════
-with selected_tab[3] if len(selected_tab) > 3 else selected_tab[0]:  # Conta
+with selected_tab[3]:  # Descrições
+    st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Categorias <span style=\'color:#00704A\'>& Descrições</span></div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Categoria é a visão macro usada nos relatórios (ex: Alimentação). Descrição é o detalhe (ex: Mercado, Restaurante). Há uma planilha separada para Despesas e outra para Receitas. Baixe, ajuste no Excel e importe de volta — lançamentos já registrados mantêm a categoria/descrição do momento em que foram feitos.</div>', unsafe_allow_html=True)
+
+    def _bloco_categorias(tipo_chave, titulo, cor_icone):
+        lista_atual = st.session_state.categorias_map.get(tipo_chave, [])
+        df_map = pd.DataFrame(lista_atual) if lista_atual else pd.DataFrame(columns=["categoria", "descricao"])
+
+        col_dl, col_up = st.columns(2)
+        with col_dl:
+            st.markdown(f'<div class="section-title">⬇️ Baixar planilha de {titulo}</div>', unsafe_allow_html=True)
+            st.caption("Baixe, ajuste as categorias/descrições no Excel e importe novamente.")
+            df_export = df_map.rename(columns={"categoria": "Categoria", "descricao": "Descrição"})
+            if df_export.empty:
+                df_export = pd.DataFrame(columns=["Categoria", "Descrição"])
+            buffer_cat = io.BytesIO()
+            with pd.ExcelWriter(buffer_cat, engine="openpyxl") as writer:
+                df_export.to_excel(writer, index=False, sheet_name=titulo)
+            st.download_button(
+                f"📥 Baixar {titulo}.xlsx",
+                data=buffer_cat.getvalue(),
+                file_name=f"Descricoes_{titulo}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key=f"dl_{tipo_chave}",
+            )
+
+        with col_up:
+            st.markdown(f'<div class="section-title">⬆️ Importar planilha de {titulo}</div>', unsafe_allow_html=True)
+            st.caption("Envie um .xlsx com as colunas Categoria e Descrição.")
+            arq_cat = st.file_uploader("Selecionar arquivo", type=["xlsx", "xls"], key=f"upload_categorias_{tipo_chave}")
+
+            if arq_cat:
+                try:
+                    try:
+                        import openpyxl  # noqa: F401
+                    except ImportError:
+                        import subprocess, sys
+                        subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl", "--quiet"])
+                        import openpyxl  # noqa: F401
+                    df_up = pd.read_excel(arq_cat, engine="openpyxl")
+                except Exception as e:
+                    st.error(f"❌ Erro ao ler o arquivo: {e}")
+                    df_up = None
+
+                if df_up is not None and not df_up.empty:
+                    cols_lower = {str(c).lower().strip(): c for c in df_up.columns}
+                    col_cat  = next((cols_lower[c] for c in cols_lower if "categ" in c), None)
+                    col_desc = next((cols_lower[c] for c in cols_lower if "descri" in c), None)
+
+                    if not col_cat or not col_desc:
+                        st.error("A planilha precisa ter uma coluna de Categoria e uma de Descrição.")
+                    else:
+                        nova_lista, vistos = [], set()
+                        for _, row in df_up.iterrows():
+                            cat_v  = str(row[col_cat]).strip()  if pd.notna(row[col_cat])  else ""
+                            desc_v = str(row[col_desc]).strip() if pd.notna(row[col_desc]) else ""
+                            if cat_v and desc_v:
+                                chave = (cat_v.lower(), desc_v.lower())
+                                if chave not in vistos:
+                                    vistos.add(chave)
+                                    nova_lista.append({"categoria": cat_v, "descricao": desc_v})
+
+                        st.info(f"📄 {len(nova_lista)} combinações de Categoria/Descrição prontas para importar.")
+                        st.dataframe(
+                            pd.DataFrame(nova_lista).rename(columns={"categoria": "Categoria", "descricao": "Descrição"}),
+                            use_container_width=True, hide_index=True,
+                        )
+                        if st.button("✅ Confirmar importação", type="primary", use_container_width=True, key=f"confirmar_import_{tipo_chave}"):
+                            st.session_state.categorias_map[tipo_chave] = nova_lista
+                            persistir_categorias()
+                            st.success(f"✅ {len(nova_lista)} combinações de {titulo} importadas com sucesso!")
+                            st.rerun()
+
+        st.markdown(f'<div class="section-title">📋 Categorias e Descrições de {titulo} cadastradas</div>', unsafe_allow_html=True)
+        if df_map.empty:
+            st.info(f"Nenhuma categoria de {titulo} cadastrada ainda. Importe uma planilha acima para começar.")
+        else:
+            st.dataframe(
+                df_map.rename(columns={"categoria": "Categoria", "descricao": "Descrição"})
+                      .sort_values(["Categoria", "Descrição"]),
+                use_container_width=True, hide_index=True,
+            )
+
+    aba_desc = st.tabs(["💸 Despesas", "💵 Receitas"])
+    with aba_desc[0]:
+        _bloco_categorias("despesa", "Despesas", "#c0392b")
+    with aba_desc[1]:
+        _bloco_categorias("receita", "Receitas", "#00704A")
+
+# ══════════════════════════════════════════════════════════════════
+# CONTA
+# ══════════════════════════════════════════════════════════════════
+with selected_tab[4] if len(selected_tab) > 4 else selected_tab[0]:  # Conta
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Minha <span style=\'color:#00704A\'>Conta</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Altere sua senha de acesso quando quiser.</div>', unsafe_allow_html=True)
 
@@ -1282,7 +1679,7 @@ with selected_tab[3] if len(selected_tab) > 3 else selected_tab[0]:  # Conta
                     save_users(usuarios_conta)
                     st.success("✅ Senha alterada com sucesso!")
 
-with selected_tab[4] if len(selected_tab) > 4 else selected_tab[0]:  # Usuários (admin)
+with selected_tab[5] if len(selected_tab) > 5 else selected_tab[0]:  # Usuários (admin)
     if not st.session_state.is_admin:
         st.error("Acesso restrito ao administrador.")
     else:

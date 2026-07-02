@@ -1,0 +1,508 @@
+{
+  "aldemir": [
+    {
+      "categoria": "Casa",
+      "descricao": "Aluguel"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Financiamento"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Condomínio"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "IPTU"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Energia elétrica"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Água"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Gás"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Internet"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Telefone"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Manutenção"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Móveis"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Eletrodomésticos"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Material de limpeza"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Seguro residencial"
+    },
+    {
+      "categoria": "Casa",
+      "descricao": "Decoração"
+    },
+    {
+      "categoria": "Mercado",
+      "descricao": "Alimentação"
+    },
+    {
+      "categoria": "Mercado",
+      "descricao": "Bebidas"
+    },
+    {
+      "categoria": "Mercado",
+      "descricao": "Higiene pessoal"
+    },
+    {
+      "categoria": "Mercado",
+      "descricao": "Produtos de limpeza"
+    },
+    {
+      "categoria": "Mercado",
+      "descricao": "Ração para pets"
+    },
+    {
+      "categoria": "Mercado",
+      "descricao": "Descartáveis"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Combustível"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Seguro"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "IPVA"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Licenciamento"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Manutenção"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Troca de óleo"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Pneus"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Lavagem"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Estacionamento"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Pedágio"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Multas"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Financiamento"
+    },
+    {
+      "categoria": "Carro",
+      "descricao": "Acessórios"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Combustível"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Seguro"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "IPVA"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Licenciamento"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Manutenção"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Troca de óleo"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Pneus"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Lavagem"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Estacionamento"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Multas"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Financiamento"
+    },
+    {
+      "categoria": "Moto",
+      "descricao": "Capacete e equipamentos"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Plano de saúde"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Consultas"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Exames"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Medicamentos"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Odontologia"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Óculos/Lentes"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Terapias"
+    },
+    {
+      "categoria": "Saúde",
+      "descricao": "Vacinas"
+    },
+    {
+      "categoria": "Educação",
+      "descricao": "Mensalidade"
+    },
+    {
+      "categoria": "Educação",
+      "descricao": "Cursos"
+    },
+    {
+      "categoria": "Educação",
+      "descricao": "Livros"
+    },
+    {
+      "categoria": "Educação",
+      "descricao": "Material escolar"
+    },
+    {
+      "categoria": "Educação",
+      "descricao": "Transporte"
+    },
+    {
+      "categoria": "Educação",
+      "descricao": "Certificações"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Cinema"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Streaming"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Viagens"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Hotéis"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Passeios"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Bares"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Restaurantes"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Eventos"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Jogos"
+    },
+    {
+      "categoria": "Lazer",
+      "descricao": "Hobbies"
+    },
+    {
+      "categoria": "Presentes",
+      "descricao": "Aniversário"
+    },
+    {
+      "categoria": "Presentes",
+      "descricao": "Casamento"
+    },
+    {
+      "categoria": "Presentes",
+      "descricao": "Natal"
+    },
+    {
+      "categoria": "Presentes",
+      "descricao": "Dia das Mães"
+    },
+    {
+      "categoria": "Presentes",
+      "descricao": "Dia dos Pais"
+    },
+    {
+      "categoria": "Presentes",
+      "descricao": "Outros presentes"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "Reserva de emergência"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "Tesouro"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "CDB"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "LCI/LCA"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "Ações"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "FIIs"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "ETFs"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "Criptomoedas"
+    },
+    {
+      "categoria": "Investimentos",
+      "descricao": "Previdência privada"
+    },
+    {
+      "categoria": "Pets",
+      "descricao": "Veterinário"
+    },
+    {
+      "categoria": "Pets",
+      "descricao": "Ração"
+    },
+    {
+      "categoria": "Pets",
+      "descricao": "Banho e tosa"
+    },
+    {
+      "categoria": "Pets",
+      "descricao": "Medicamentos"
+    },
+    {
+      "categoria": "Pets",
+      "descricao": "Brinquedos"
+    },
+    {
+      "categoria": "Pets",
+      "descricao": "Vacinas"
+    },
+    {
+      "categoria": "Roupas",
+      "descricao": "Roupas"
+    },
+    {
+      "categoria": "Roupas",
+      "descricao": "Calçados"
+    },
+    {
+      "categoria": "Roupas",
+      "descricao": "Acessórios"
+    },
+    {
+      "categoria": "Roupas",
+      "descricao": "Lavanderia"
+    },
+    {
+      "categoria": "Impostos",
+      "descricao": "IR"
+    },
+    {
+      "categoria": "Impostos",
+      "descricao": "Taxas"
+    },
+    {
+      "categoria": "Impostos",
+      "descricao": "Contabilidade"
+    },
+    {
+      "categoria": "Trabalho",
+      "descricao": "Ferramentas"
+    },
+    {
+      "categoria": "Trabalho",
+      "descricao": "Equipamentos"
+    },
+    {
+      "categoria": "Trabalho",
+      "descricao": "Software"
+    },
+    {
+      "categoria": "Trabalho",
+      "descricao": "Cursos"
+    },
+    {
+      "categoria": "Trabalho",
+      "descricao": "Deslocamento"
+    },
+    {
+      "categoria": "Tecnologia",
+      "descricao": "Celular"
+    },
+    {
+      "categoria": "Tecnologia",
+      "descricao": "Computador"
+    },
+    {
+      "categoria": "Tecnologia",
+      "descricao": "Periféricos"
+    },
+    {
+      "categoria": "Tecnologia",
+      "descricao": "Aplicativos"
+    },
+    {
+      "categoria": "Tecnologia",
+      "descricao": "Armazenamento em nuvem"
+    },
+    {
+      "categoria": "Assinaturas",
+      "descricao": "Música"
+    },
+    {
+      "categoria": "Assinaturas",
+      "descricao": "Vídeo"
+    },
+    {
+      "categoria": "Assinaturas",
+      "descricao": "Academia"
+    },
+    {
+      "categoria": "Assinaturas",
+      "descricao": "Jornais"
+    },
+    {
+      "categoria": "Assinaturas",
+      "descricao": "Softwares"
+    },
+    {
+      "categoria": "Filhos",
+      "descricao": "Escola"
+    },
+    {
+      "categoria": "Filhos",
+      "descricao": "Fraldas"
+    },
+    {
+      "categoria": "Filhos",
+      "descricao": "Roupas"
+    },
+    {
+      "categoria": "Filhos",
+      "descricao": "Brinquedos"
+    },
+    {
+      "categoria": "Filhos",
+      "descricao": "Material escolar"
+    },
+    {
+      "categoria": "Filhos",
+      "descricao": "Saúde"
+    },
+    {
+      "categoria": "Doações",
+      "descricao": "Instituições"
+    },
+    {
+      "categoria": "Doações",
+      "descricao": "Igreja"
+    },
+    {
+      "categoria": "Doações",
+      "descricao": "Campanhas"
+    },
+    {
+      "categoria": "Financeiro",
+      "descricao": "Tarifas bancárias"
+    },
+    {
+      "categoria": "Financeiro",
+      "descricao": "Juros"
+    },
+    {
+      "categoria": "Financeiro",
+      "descricao": "IOF"
+    },
+    {
+      "categoria": "Financeiro",
+      "descricao": "Anuidade de cartão"
+    }
+  ]
+}

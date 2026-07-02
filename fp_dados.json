@@ -2,22 +2,2235 @@
   "aldemir": {
     "lancamentos": [
       {
-        "id": 1782349613824,
-        "data": "2026-06-24",
-        "valor": 3500.0,
-        "descricao": "pagamento",
+        "id": 1782783887461,
+        "data": "2026-04-30",
+        "valor": 99.99,
+        "descricao": "Internet",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Serviços",
+        "icone": "📡"
+      },
+      {
+        "id": 1782783887460,
+        "data": "2026-04-30",
+        "valor": 231.02,
+        "descricao": "Energia",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887459,
+        "data": "2026-04-12",
+        "valor": 50.0,
+        "descricao": "Lavagem",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887458,
+        "data": "2026-04-30",
+        "valor": 71.09,
+        "descricao": "Manutenção",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887457,
+        "data": "2026-04-30",
+        "valor": 76.84,
+        "descricao": "Roupas",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Vestuário",
+        "icone": "👗"
+      },
+      {
+        "id": 1782783887456,
+        "data": "2026-04-30",
+        "valor": 110.98,
+        "descricao": "Roupas",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Vestuário",
+        "icone": "👗"
+      },
+      {
+        "id": 1782783887455,
+        "data": "2026-04-28",
+        "valor": 62.3,
+        "descricao": "Combustível",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887454,
+        "data": "2026-04-27",
+        "valor": 55.45,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887453,
+        "data": "2026-04-27",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887452,
+        "data": "2026-04-26",
+        "valor": 19.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887451,
+        "data": "2026-04-26",
+        "valor": 29.0,
+        "descricao": "Sorveteria",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887450,
+        "data": "2026-04-25",
+        "valor": 9.99,
+        "descricao": "Acessórios Casa",
+        "categoria_extra": "Moradia",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887449,
+        "data": "2026-04-25",
+        "valor": 100.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887448,
+        "data": "2026-04-25",
+        "valor": 4.5,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887447,
+        "data": "2026-04-24",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887446,
+        "data": "2026-04-23",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887445,
+        "data": "2026-04-22",
+        "valor": 75.93,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887444,
+        "data": "2026-04-21",
+        "valor": 5.79,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887443,
+        "data": "2026-04-19",
+        "valor": 109.9,
+        "descricao": "Cabelo",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887442,
+        "data": "2026-04-18",
+        "valor": 90.83,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887441,
+        "data": "2026-04-18",
+        "valor": 20.0,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887440,
+        "data": "2026-04-18",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887439,
+        "data": "2026-04-17",
+        "valor": 27.54,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887438,
+        "data": "2026-04-16",
+        "valor": 5.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887437,
+        "data": "2026-04-16",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887436,
+        "data": "2026-04-15",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887435,
+        "data": "2026-04-14",
+        "valor": 75.14,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887434,
+        "data": "2026-04-14",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887433,
+        "data": "2026-04-13",
+        "valor": 750.0,
+        "descricao": "Caixa economica",
+        "categoria_extra": "Moradia",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887432,
+        "data": "2026-04-13",
+        "valor": 9.98,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887431,
+        "data": "2026-04-13",
+        "valor": 230.8,
+        "descricao": "Suplemento",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887430,
+        "data": "2026-04-12",
+        "valor": 13.5,
+        "descricao": "Materias",
+        "categoria_extra": "Educação",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887429,
+        "data": "2026-04-12",
+        "valor": 21.79,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887428,
+        "data": "2026-04-11",
+        "valor": 25.0,
+        "descricao": "Futebol",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887427,
+        "data": "2026-04-11",
+        "valor": 19.49,
+        "descricao": "Sorveteria",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887426,
+        "data": "2026-04-11",
+        "valor": 100.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887425,
+        "data": "2026-04-11",
+        "valor": 58.29,
+        "descricao": "Combustível",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887424,
+        "data": "2026-04-11",
+        "valor": 26.25,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887423,
+        "data": "2026-04-10",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887422,
+        "data": "2026-04-09",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887421,
+        "data": "2026-04-08",
+        "valor": 12.08,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887420,
+        "data": "2026-04-08",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887419,
+        "data": "2026-04-07",
+        "valor": 39.84,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887418,
+        "data": "2026-04-07",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887417,
+        "data": "2026-04-06",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887416,
+        "data": "2026-04-05",
+        "valor": 300.0,
+        "descricao": "Aluguel",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887415,
+        "data": "2026-04-05",
+        "valor": 100.0,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887414,
+        "data": "2026-04-05",
+        "valor": 9.0,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887413,
+        "data": "2026-04-04",
+        "valor": 21.87,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887412,
+        "data": "2026-04-04",
+        "valor": 124.97,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887411,
+        "data": "2026-04-03",
+        "valor": 39.98,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887410,
+        "data": "2026-04-03",
+        "valor": 19.25,
+        "descricao": "Sorveteria",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887409,
+        "data": "2026-04-01",
+        "valor": 16.8,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887408,
+        "data": "2026-04-01",
+        "valor": 166.0,
+        "descricao": "Jantar",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Alimentação",
+        "icone": "🍽️"
+      },
+      {
+        "id": 1782783887407,
+        "data": "2026-03-31",
+        "valor": 762.15,
+        "descricao": "IPVA",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887406,
+        "data": "2026-03-31",
+        "valor": 71.09,
+        "descricao": "Manutenção",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887405,
+        "data": "2026-03-31",
+        "valor": 76.86,
+        "descricao": "Roupas",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Vestuário",
+        "icone": "👗"
+      },
+      {
+        "id": 1782783887404,
+        "data": "2026-03-31",
+        "valor": 110.99,
+        "descricao": "Roupas",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Vestuário",
+        "icone": "👗"
+      },
+      {
+        "id": 1782783887403,
+        "data": "2026-03-31",
+        "valor": 99.99,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887402,
+        "data": "2026-03-31",
+        "valor": 76.5,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887401,
+        "data": "2026-03-31",
+        "valor": 86.63,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887400,
+        "data": "2026-03-31",
+        "valor": 29.96,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887399,
+        "data": "2026-03-31",
+        "valor": 51.23,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887398,
+        "data": "2026-03-31",
+        "valor": 79.99,
+        "descricao": "Internet",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Serviços",
+        "icone": "📡"
+      },
+      {
+        "id": 1782783887397,
+        "data": "2026-03-31",
+        "valor": 237.91,
+        "descricao": "Energia",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887396,
+        "data": "2026-03-30",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887395,
+        "data": "2026-03-30",
+        "valor": 300.0,
+        "descricao": "Aluguel",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887394,
+        "data": "2026-03-28",
+        "valor": 150.0,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887393,
+        "data": "2026-03-28",
+        "valor": 39.9,
+        "descricao": "Acessórios Casa",
+        "categoria_extra": "Moradia",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887392,
+        "data": "2026-03-28",
+        "valor": 58.0,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887391,
+        "data": "2026-03-28",
+        "valor": 100.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887390,
+        "data": "2026-03-28",
+        "valor": 9.0,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887389,
+        "data": "2026-03-27",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887388,
+        "data": "2026-03-26",
+        "valor": 19.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887387,
+        "data": "2026-03-26",
+        "valor": 29.98,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887386,
+        "data": "2026-03-26",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887385,
+        "data": "2026-03-24",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887384,
+        "data": "2026-03-23",
+        "valor": 47.91,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887383,
+        "data": "2026-03-23",
+        "valor": 48.19,
+        "descricao": "Combustível",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887382,
+        "data": "2026-03-23",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887381,
+        "data": "2026-03-21",
+        "valor": 36.0,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887380,
+        "data": "2026-03-21",
+        "valor": 30.0,
+        "descricao": "Manutenção",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887379,
+        "data": "2026-03-21",
+        "valor": 16.59,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887378,
+        "data": "2026-03-21",
+        "valor": 7.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887377,
+        "data": "2026-03-21",
+        "valor": 100.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887376,
+        "data": "2026-03-20",
+        "valor": 50.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887375,
+        "data": "2026-03-19",
+        "valor": 109.9,
+        "descricao": "Cabelo",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887374,
+        "data": "2026-03-19",
+        "valor": 56.66,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887373,
+        "data": "2026-03-19",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887372,
+        "data": "2026-03-19",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887371,
+        "data": "2026-03-18",
+        "valor": 4.29,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887370,
+        "data": "2026-03-17",
+        "valor": 14.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887369,
+        "data": "2026-03-17",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887368,
+        "data": "2026-03-16",
+        "valor": 5.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887367,
+        "data": "2026-03-16",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887366,
+        "data": "2026-03-14",
+        "valor": 39.99,
+        "descricao": "Roupas",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Vestuário",
+        "icone": "👗"
+      },
+      {
+        "id": 1782783887365,
+        "data": "2026-03-14",
+        "valor": 24.0,
+        "descricao": "Materias",
+        "categoria_extra": "Educação",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887364,
+        "data": "2026-03-14",
+        "valor": 28.0,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887363,
+        "data": "2026-03-12",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887362,
+        "data": "2026-03-12",
+        "valor": 40.93,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887361,
+        "data": "2026-03-10",
+        "valor": 4.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887360,
+        "data": "2026-03-10",
+        "valor": 63.35,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887359,
+        "data": "2026-03-10",
+        "valor": 15.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887358,
+        "data": "2026-03-10",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887357,
+        "data": "2026-03-09",
+        "valor": 1.95,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887356,
+        "data": "2026-03-09",
+        "valor": 24.59,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887355,
+        "data": "2026-03-09",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887354,
+        "data": "2026-03-09",
+        "valor": 100.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887353,
+        "data": "2026-03-08",
+        "valor": 13.0,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887352,
+        "data": "2026-03-08",
+        "valor": 25.99,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887351,
+        "data": "2026-03-08",
+        "valor": 37.0,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887350,
+        "data": "2026-03-07",
+        "valor": 222.84,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887349,
+        "data": "2026-03-07",
+        "valor": 124.97,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887348,
+        "data": "2026-03-07",
+        "valor": 45.0,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887347,
+        "data": "2026-03-07",
+        "valor": 70.0,
+        "descricao": "Acessórios Carro",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887346,
+        "data": "2026-03-06",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887345,
+        "data": "2026-03-05",
+        "valor": 28.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887344,
+        "data": "2026-03-05",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887343,
+        "data": "2026-03-04",
+        "valor": 28.0,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887342,
+        "data": "2026-03-03",
+        "valor": 67.03,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887341,
+        "data": "2026-03-03",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887340,
+        "data": "2026-03-02",
+        "valor": 3.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887339,
+        "data": "2026-03-01",
+        "valor": 5.0,
+        "descricao": "Igreja",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887338,
+        "data": "2026-02-28",
+        "valor": 300.0,
+        "descricao": "Consultas",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Saúde",
+        "icone": "💊"
+      },
+      {
+        "id": 1782783887337,
+        "data": "2026-02-28",
+        "valor": 76.5,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887336,
+        "data": "2026-02-28",
+        "valor": 86.63,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887335,
+        "data": "2026-02-28",
+        "valor": 29.96,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887334,
+        "data": "2026-02-28",
+        "valor": 51.23,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887333,
+        "data": "2026-02-28",
+        "valor": 56.2,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887332,
+        "data": "2026-02-28",
+        "valor": 33.28,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887331,
+        "data": "2026-02-28",
+        "valor": 79.99,
+        "descricao": "Internet",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Serviços",
+        "icone": "📡"
+      },
+      {
+        "id": 1782783887330,
+        "data": "2026-02-28",
+        "valor": 159.6,
+        "descricao": "Energia",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887329,
+        "data": "2026-02-26",
+        "valor": 19.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887328,
+        "data": "2026-02-25",
+        "valor": 15.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887327,
+        "data": "2026-02-24",
+        "valor": 28.62,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887326,
+        "data": "2026-02-23",
+        "valor": 55.15,
+        "descricao": "Combustível",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887325,
+        "data": "2026-02-22",
+        "valor": 5.0,
+        "descricao": "Igreja",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887324,
+        "data": "2026-02-21",
+        "valor": 102.9,
+        "descricao": "Jantar",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Alimentação",
+        "icone": "🍽️"
+      },
+      {
+        "id": 1782783887323,
+        "data": "2026-02-21",
+        "valor": 102.9,
+        "descricao": "Jantar",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Alimentação",
+        "icone": "🍽️"
+      },
+      {
+        "id": 1782783887322,
+        "data": "2026-02-21",
+        "valor": 59.99,
+        "descricao": "Acessórios Moto",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887321,
+        "data": "2026-02-18",
+        "valor": 109.9,
+        "descricao": "Cabelo",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887320,
+        "data": "2026-02-18",
+        "valor": 123.01,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887319,
+        "data": "2026-02-16",
+        "valor": 5.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887318,
+        "data": "2026-02-15",
+        "valor": 30.0,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887317,
+        "data": "2026-02-14",
+        "valor": 51.99,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887316,
+        "data": "2026-02-14",
+        "valor": 9.15,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887315,
+        "data": "2026-02-14",
+        "valor": 100.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887314,
+        "data": "2026-02-12",
+        "valor": 7.85,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887313,
+        "data": "2026-02-11",
+        "valor": 12.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887312,
+        "data": "2026-02-11",
+        "valor": 32.93,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887311,
+        "data": "2026-02-10",
+        "valor": 6.18,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887310,
+        "data": "2026-02-10",
+        "valor": 11.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887309,
+        "data": "2026-02-08",
+        "valor": 5.0,
+        "descricao": "Igreja",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887308,
+        "data": "2026-02-08",
+        "valor": 7.85,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887307,
+        "data": "2026-02-08",
+        "valor": 8.0,
+        "descricao": "Shopping",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Vestuário",
+        "icone": "👗"
+      },
+      {
+        "id": 1782783887306,
+        "data": "2026-02-08",
+        "valor": 96.13,
+        "descricao": "Remédio",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Saúde",
+        "icone": "💊"
+      },
+      {
+        "id": 1782783887305,
+        "data": "2026-02-07",
+        "valor": 300.0,
+        "descricao": "Aluguel",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887304,
+        "data": "2026-02-06",
+        "valor": 38.11,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887303,
+        "data": "2026-02-05",
+        "valor": 5.0,
+        "descricao": "Igreja",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887302,
+        "data": "2026-02-04",
+        "valor": 252.38,
+        "descricao": "Igreja",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887301,
+        "data": "2026-02-04",
+        "valor": 5.59,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887300,
+        "data": "2026-01-31",
+        "valor": 3.66,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887299,
+        "data": "2026-01-31",
+        "valor": 99.99,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887298,
+        "data": "2026-01-31",
+        "valor": 300.0,
+        "descricao": "Consultas",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Saúde",
+        "icone": "💊"
+      },
+      {
+        "id": 1782783887297,
+        "data": "2026-01-31",
+        "valor": 86.64,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887296,
+        "data": "2026-01-31",
+        "valor": 29.98,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887295,
+        "data": "2026-01-31",
+        "valor": 99.5,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887294,
+        "data": "2026-01-31",
+        "valor": 51.23,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887293,
+        "data": "2026-01-31",
+        "valor": 101.85,
+        "descricao": "Almoço",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Alimentação",
+        "icone": "🍽️"
+      },
+      {
+        "id": 1782783887292,
+        "data": "2026-01-31",
+        "valor": 36.0,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887291,
+        "data": "2026-01-31",
+        "valor": 79.99,
+        "descricao": "Internet",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Serviços",
+        "icone": "📡"
+      },
+      {
+        "id": 1782783887290,
+        "data": "2026-01-31",
+        "valor": 177.67,
+        "descricao": "Energia",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887289,
+        "data": "2026-01-30",
+        "valor": 8.99,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887288,
+        "data": "2026-01-30",
+        "valor": 91.38,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887287,
+        "data": "2026-01-29",
+        "valor": 52.08,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887286,
+        "data": "2026-01-29",
+        "valor": 56.21,
+        "descricao": "Combustível",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887285,
+        "data": "2026-01-28",
+        "valor": 115.0,
+        "descricao": "Igreja",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887284,
+        "data": "2026-01-28",
+        "valor": 100.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887283,
+        "data": "2026-01-28",
+        "valor": 2.0,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887282,
+        "data": "2026-01-26",
+        "valor": 19.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887281,
+        "data": "2026-01-25",
+        "valor": 5.0,
+        "descricao": "Igreja",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887280,
+        "data": "2026-01-24",
+        "valor": 92.41,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887279,
+        "data": "2026-01-24",
+        "valor": 7.8,
+        "descricao": "Acessórios Casa",
+        "categoria_extra": "Moradia",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887278,
+        "data": "2026-01-23",
+        "valor": 13.59,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887277,
+        "data": "2026-01-22",
+        "valor": 72.0,
+        "descricao": "Jantar",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Alimentação",
+        "icone": "🍽️"
+      },
+      {
+        "id": 1782783887276,
+        "data": "2026-01-21",
+        "valor": 120.0,
+        "descricao": "Presentes",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887275,
+        "data": "2026-01-20",
+        "valor": 30.0,
+        "descricao": "Combustível",
+        "categoria_extra": "Carro",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887274,
+        "data": "2026-01-20",
+        "valor": 83.35,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887273,
+        "data": "2026-01-19",
+        "valor": 4.97,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887272,
+        "data": "2026-01-19",
+        "valor": 49.44,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887271,
+        "data": "2026-01-17",
+        "valor": 10.0,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887270,
+        "data": "2026-01-16",
+        "valor": 5.9,
+        "descricao": "Streamer",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887269,
+        "data": "2026-01-15",
+        "valor": 6.18,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887268,
+        "data": "2026-01-14",
+        "valor": 91.5,
+        "descricao": "Jantar",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Alimentação",
+        "icone": "🍽️"
+      },
+      {
+        "id": 1782783887267,
+        "data": "2026-01-12",
+        "valor": 36.26,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887266,
+        "data": "2026-01-12",
+        "valor": 25.55,
+        "descricao": "Acessórios",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887265,
+        "data": "2026-01-11",
+        "valor": 31.83,
+        "descricao": "Sorveteria",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887264,
+        "data": "2026-01-11",
+        "valor": 34.13,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887263,
+        "data": "2026-01-09",
+        "valor": 40.18,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887262,
+        "data": "2026-01-09",
+        "valor": 6.65,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887261,
+        "data": "2026-01-08",
+        "valor": 7.81,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887260,
+        "data": "2026-01-08",
+        "valor": 43.6,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887259,
+        "data": "2026-01-07",
+        "valor": 30.0,
+        "descricao": "Acessórios Casa",
+        "categoria_extra": "Moradia",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887258,
+        "data": "2026-01-07",
+        "valor": 25.0,
+        "descricao": "Acessórios Casa",
+        "categoria_extra": "Moradia",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887257,
+        "data": "2026-01-06",
+        "valor": 109.9,
+        "descricao": "Cabelo",
+        "categoria_extra": "Pessoal",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887256,
+        "data": "2026-01-06",
+        "valor": 61.45,
+        "descricao": "Combustível",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Transporte",
+        "icone": "🚗"
+      },
+      {
+        "id": 1782783887255,
+        "data": "2026-01-06",
+        "valor": 80.0,
+        "descricao": "Preventiva",
+        "categoria_extra": "Moto",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887254,
+        "data": "2026-01-05",
+        "valor": 16.82,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887253,
+        "data": "2026-01-03",
+        "valor": 70.75,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887252,
+        "data": "2026-01-01",
+        "valor": 300.0,
+        "descricao": "Aluguel",
+        "categoria_extra": "Moradia",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠"
+      },
+      {
+        "id": 1782783887251,
+        "data": "2026-01-01",
+        "valor": 10.0,
+        "descricao": "Conveniência",
+        "categoria_extra": "Lazer",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782783887250,
+        "data": "2026-01-01",
+        "valor": 33.74,
+        "descricao": "Alimentação",
+        "categoria_extra": "Mercado",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌"
+      },
+      {
+        "id": 1782782709160,
+        "data": "2026-04-30",
+        "valor": 3936.47,
+        "descricao": "Salário",
         "tipo": "Receita",
         "classe": "Receita",
         "icone": "💵"
       },
       {
-        "id": 1782348972586,
-        "data": "2026-01-03",
-        "valor": 200.0,
-        "descricao": "Luz",
-        "tipo": "Fixo",
-        "classe": "Moradia",
-        "icone": "🏠"
+        "id": 1782782709159,
+        "data": "2026-04-29",
+        "valor": 150.0,
+        "descricao": "Futebol",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709158,
+        "data": "2026-04-04",
+        "valor": 350.0,
+        "descricao": "Outros",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709157,
+        "data": "2026-03-28",
+        "valor": 4361.61,
+        "descricao": "Salário",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709156,
+        "data": "2026-03-12",
+        "valor": 150.0,
+        "descricao": "Futebol",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709155,
+        "data": "2026-03-04",
+        "valor": 150.0,
+        "descricao": "Futebol",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709154,
+        "data": "2026-02-28",
+        "valor": 4263.91,
+        "descricao": "Salário",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709153,
+        "data": "2026-02-20",
+        "valor": 9013.0,
+        "descricao": "PLR",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709152,
+        "data": "2026-01-31",
+        "valor": 2851.84,
+        "descricao": "Salário",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709151,
+        "data": "2026-01-12",
+        "valor": 450.0,
+        "descricao": "Futebol",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      },
+      {
+        "id": 1782782709150,
+        "data": "2026-01-10",
+        "valor": 1000.0,
+        "descricao": "Futebol",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵"
+      }
+    ],
+    "lixeira": [
+      {
+        "id": 1782348972584,
+        "data": "2026-01-01",
+        "valor": 10.0,
+        "descricao": "Conveniencia",
+        "tipo": "Variável",
+        "classe": "Outros",
+        "icone": "📌",
+        "apagadoEm": "2026-06-29T21:25:00.810655"
       },
       {
         "id": 1782348972585,
@@ -26,19 +2239,29 @@
         "descricao": "Agua",
         "tipo": "Fixo",
         "classe": "Moradia",
-        "icone": "🏠"
+        "icone": "🏠",
+        "apagadoEm": "2026-06-29T21:24:59.294602"
       },
       {
-        "id": 1782348972584,
-        "data": "2026-01-01",
-        "valor": 10.0,
-        "descricao": "Conveniencia",
-        "tipo": "Variável",
-        "classe": "Outros",
-        "icone": "📌"
-      }
-    ],
-    "lixeira": [
+        "id": 1782348972586,
+        "data": "2026-01-03",
+        "valor": 200.0,
+        "descricao": "Luz",
+        "tipo": "Fixo",
+        "classe": "Moradia",
+        "icone": "🏠",
+        "apagadoEm": "2026-06-29T21:24:58.129534"
+      },
+      {
+        "id": 1782349613824,
+        "data": "2026-06-24",
+        "valor": 3500.0,
+        "descricao": "pagamento",
+        "tipo": "Receita",
+        "classe": "Receita",
+        "icone": "💵",
+        "apagadoEm": "2026-06-29T21:24:56.624791"
+      },
       {
         "id": 1782348972587,
         "data": "2026-01-04",
