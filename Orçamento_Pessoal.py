@@ -9,6 +9,19 @@ import json, hashlib, os, io
 st.set_page_config(page_title="FinançasPro", layout="wide",
                    initial_sidebar_state="collapsed")
 
+# Força o título da aba do navegador, sem o sufixo "· Streamlit"
+st.markdown("""
+<script>
+document.title = "FinançasPro";
+const observer = new MutationObserver(() => {
+    if (document.title !== "FinançasPro") {
+        document.title = "FinançasPro";
+    }
+});
+observer.observe(document.querySelector('title'), { childList: true });
+</script>
+""", unsafe_allow_html=True)
+
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 USERS_FILE     = os.path.join(BASE_DIR, "fp_usuarios.json")
 DATA_FILE      = os.path.join(BASE_DIR, "fp_dados.json")
