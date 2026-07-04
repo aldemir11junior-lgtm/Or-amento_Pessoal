@@ -1,0 +1,34 @@
+{
+  "aldemir": {
+    "2026-08": {
+      "renda_prevista": 0.0,
+      "eventos": [],
+      "fixos_parcelas": [],
+      "limites_categoria": {},
+      "meta_poupanca": 0.0,
+      "meta_investimento": 0.0
+    },
+    "2026-07": {
+      "renda_prevista": 3500.0,
+      "eventos": [
+        {
+          "descricao": "Chá do Lucca",
+          "categoria": "Filhos",
+          "valor_estimado": 500.0
+        }
+      ],
+      "fixos_parcelas": [
+        {
+          "descricao": "Parcela",
+          "categoria": "Casa",
+          "valor": 1500.0,
+          "tipo": "Fixo",
+          "parcelas_restantes": 359
+        }
+      ],
+      "limites_categoria": {},
+      "meta_poupanca": 0.0,
+      "meta_investimento": 0.0
+    }
+  }
+}

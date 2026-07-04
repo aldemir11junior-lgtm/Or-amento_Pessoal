@@ -13,6 +13,7 @@ BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 USERS_FILE     = os.path.join(BASE_DIR, "fp_usuarios.json")
 DATA_FILE      = os.path.join(BASE_DIR, "fp_dados.json")
 CATEGORIAS_FILE = os.path.join(BASE_DIR, "fp_categorias.json")
+PLANEJAMENTO_FILE = os.path.join(BASE_DIR, "fp_planejamento.json")
 
 # ─── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -298,6 +299,53 @@ def save_categorias(usuario, mapa):
     with open(CATEGORIAS_FILE, "w", encoding="utf-8") as f:
         json.dump(all_data, f, ensure_ascii=False, indent=2)
 
+def _mes_vazio():
+    return {
+        "renda_prevista": 0.0,
+        "eventos": [],          # eventos/gastos pontuais previstos no mês
+        "fixos_parcelas": [],   # custos fixos e parcelas previstos no mês
+        "limites_categoria": {},  # {"Categoria": limite_R$}
+        "meta_poupanca": 0.0,
+        "meta_investimento": 0.0,
+    }
+
+def load_planejamento(usuario):
+    if os.path.exists(PLANEJAMENTO_FILE):
+        with open(PLANEJAMENTO_FILE, "r", encoding="utf-8") as f:
+            try:
+                all_data = json.load(f)
+            except json.JSONDecodeError:
+                all_data = {}
+    else:
+        all_data = {}
+    return all_data.get(usuario.lower(), {})
+
+def save_planejamento(usuario, mapa_meses):
+    if os.path.exists(PLANEJAMENTO_FILE):
+        with open(PLANEJAMENTO_FILE, "r", encoding="utf-8") as f:
+            try:
+                all_data = json.load(f)
+            except json.JSONDecodeError:
+                all_data = {}
+    else:
+        all_data = {}
+    all_data[usuario.lower()] = mapa_meses
+    with open(PLANEJAMENTO_FILE, "w", encoding="utf-8") as f:
+        json.dump(all_data, f, ensure_ascii=False, indent=2)
+
+def get_mes_planejamento(chave_mes):
+    """Retorna (criando se preciso) o dicionário de planejamento do mês informado (formato 'YYYY-MM')."""
+    if chave_mes not in st.session_state.planejamento_map:
+        st.session_state.planejamento_map[chave_mes] = _mes_vazio()
+    mes = st.session_state.planejamento_map[chave_mes]
+    for k, v in _mes_vazio().items():
+        if k not in mes:
+            mes[k] = v
+    return mes
+
+def persistir_planejamento():
+    save_planejamento(st.session_state.username, st.session_state.planejamento_map)
+
 def categorias_disponiveis(tipo_chave):
     lista = st.session_state.categorias_map.get(tipo_chave, [])
     return sorted({c["categoria"] for c in lista if c.get("categoria")})
@@ -363,6 +411,15 @@ def badge_tipo(tipo):
     if tipo == "Variável": return '<span class="badge badge-variavel">Variável</span>'
     return '<span class="badge badge-fixo">Despesa</span>'
 
+FORMAS_PAGAMENTO = ["Pix", "Dinheiro", "Cartão"]
+ICONE_PAGAMENTO  = {"Pix": "📱", "Dinheiro": "💵", "Cartão": "💳"}
+
+def badge_pagamento(forma):
+    cores  = {"Pix": "#e0f7fa", "Dinheiro": "#e8f5e9", "Cartão": "#e8eaf6"}
+    textos = {"Pix": "#006064", "Dinheiro": "#2e7d32", "Cartão": "#283593"}
+    icone  = ICONE_PAGAMENTO.get(forma, "💳")
+    return f'<span class="badge" style="background:{cores.get(forma,"#fafafa")};color:{textos.get(forma,"#555")};">{icone} {forma}</span>'
+
 # ─── SESSION STATE ────────────────────────────────────────────────────────────
 def _ss(k, v):
     if k not in st.session_state: st.session_state[k] = v
@@ -371,6 +428,7 @@ _ss("logged_in", False); _ss("username", ""); _ss("is_admin", False)
 _ss("page", "Dashboard")
 _ss("lancamentos", []); _ss("lixeira", [])
 _ss("categorias_map", {"despesa": [], "receita": []})
+_ss("planejamento_map", {})
 _ss("editando_lanc_id", None)
 _ss("tema_escuro", False)
 
@@ -418,6 +476,7 @@ if not st.session_state.logged_in:
                         st.session_state.lancamentos = lanc
                         st.session_state.lixeira     = lix
                         st.session_state.categorias_map = load_categorias(found["usuario"])
+                        st.session_state.planejamento_map = load_planejamento(found["usuario"])
                         # Limpa itens apagados há mais de 30 dias ao fazer login
                         hoje_login = datetime.now()
                         st.session_state.lixeira = [
@@ -523,13 +582,15 @@ with col_sair:
         st.rerun()
 
 # ─── NAVEGAÇÃO POR ABAS ───────────────────────────────────────────────────────
-pages = ["📊 Dashboard", "➕ Lançamentos", "📋 Histórico", "🏷️ Descrições", "⚙️ Conta"]
+pages = ["📊 Dashboard", "🗓️ Planejamento", "🔎 Análise e Insights", "➕ Lançamentos", "📋 Histórico", "🏷️ Descrições", "⚙️ Conta"]
 if st.session_state.is_admin:
     pages.append("👥 Usuários")
 
 # Mapeia label da aba para nome de página interno
 PAGE_MAP = {
     "📊 Dashboard": "Dashboard",
+    "🗓️ Planejamento": "Planejamento",
+    "🔎 Análise e Insights": "Análise",
     "➕ Lançamentos": "Lançamentos",
     "📋 Histórico": "Histórico",
     "🏷️ Descrições": "Descrições",
@@ -655,10 +716,15 @@ with selected_tab[0]:  # Dashboard
 
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-    # ── Gráfico de Linha Suavizada: Evolução Mensal ──
-    if lanc_filtrados:
-        st.markdown('<div class="section-title">Evolução Mensal</div>', unsafe_allow_html=True)
-        df = pd.DataFrame(lanc_filtrados)
+    # ── Gráfico de Linha Suavizada: Evolução Mensal (sempre ano atual, ignora filtro de período) ──
+    ano_atual = date.today().year
+    lanc_ano_atual = [
+        l for l in lancamentos
+        if datetime.strptime(l["data"], "%Y-%m-%d").date().year == ano_atual
+    ]
+    if lanc_ano_atual:
+        st.markdown(f'<div class="section-title">Evolução Mensal — {ano_atual}</div>', unsafe_allow_html=True)
+        df = pd.DataFrame(lanc_ano_atual)
         df["mes_periodo"] = pd.to_datetime(df["data"]).dt.to_period("M")
         df["mes_str"]     = df["mes_periodo"].astype(str)
 
@@ -1012,11 +1078,11 @@ with selected_tab[0]:  # Dashboard
                   </div>
                 </div>""", unsafe_allow_html=True)
 
-    # ── Gastos por Categoria/Veículo (segmentação extra, ex: Moto) ──
+    # ── Gastos por Categoria (segmentação extra, ex: Moto) ──
     despesas_com_cat_extra = [l for l in despesas if l.get("categoria_extra")]
     if despesas_com_cat_extra:
         st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🏷️ Gastos por Categoria/Veículo</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🏷️ Gastos por Categoria</div>', unsafe_allow_html=True)
         st.caption("Segmentação extra informada nos lançamentos (ex: Moto, Carro, Casa).")
 
         cat_extra_map = {}
@@ -1057,16 +1123,402 @@ with selected_tab[0]:  # Dashboard
         for l in ultimos:
             d = l["data"].split("-"); data_fmt = f"{d[2]}/{d[1]}/{d[0]}"
             sinal = "+" if l["tipo"] == "Receita" else "-"
+            forma_l = l.get("forma_pagamento", "Cartão")
             rows.append({"Data": data_fmt, "Descrição": f"{l['icone']} {l['descricao']}",
                          "Tipo": l["tipo"], "Categoria": l["classe"],
-                         "Categoria/Veículo": l.get("categoria_extra", "") or "—",
+                         "Pagamento": f"{ICONE_PAGAMENTO.get(forma_l,'💳')} {forma_l}",
+                         "Categoria": l.get("categoria_extra", "") or "—",
                          "Valor": f"{sinal} {fmt_brl(l['valor'])}"})
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
 # ══════════════════════════════════════════════════════════════════
+# PLANEJAMENTO
+# ══════════════════════════════════════════════════════════════════
+with selected_tab[1]:  # Planejamento
+    st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Planejamento <span style=\'color:#00704A\'>do Mês</span></div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:16px;">Monte o orçamento antes do mês começar: informe a renda prevista, os eventos e parcelas esperados, defina limites por categoria e metas de poupança/investimento — e veja a projeção antes mesmo de gastar um centavo.</div>', unsafe_allow_html=True)
+
+    # ── Seletor de mês de referência ──
+    hoje_pl = date.today()
+    meses_nomes_pl = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
+    col_mes_pl, col_ano_pl, col_dummy_pl = st.columns([2, 1.2, 3])
+    with col_mes_pl:
+        # Sugere o mês seguinte como padrão (planejar ANTES do mês começar), mas permite escolher qualquer mês
+        mes_padrao_idx = hoje_pl.month  # próximo mês (1-indexed -> hoje_pl.month já é o próximo em index 0-based se hoje=Jul(7)->idx6=Ago? ajustamos abaixo)
+        mes_sel_pl = st.selectbox("🗓️ Mês de referência", meses_nomes_pl,
+                                   index=(hoje_pl.month % 12), key="pl_mes_sel")
+    with col_ano_pl:
+        ano_sel_pl = st.selectbox("Ano", [hoje_pl.year, hoje_pl.year + 1], key="pl_ano_sel")
+    mes_num_pl = meses_nomes_pl.index(mes_sel_pl) + 1
+    chave_mes_pl = f"{ano_sel_pl}-{mes_num_pl:02d}"
+    eh_mes_futuro = date(ano_sel_pl, mes_num_pl, 1) > date(hoje_pl.year, hoje_pl.month, 1)
+    eh_mes_atual = (ano_sel_pl == hoje_pl.year and mes_num_pl == hoje_pl.month)
+
+    if eh_mes_futuro:
+        st.markdown(f'<div style="font-size:0.75rem;color:#00704A;background:#e8f7ef;border:1px solid #a8f0c8;border-radius:8px;padding:8px 12px;margin-bottom:14px;">🔮 Você está planejando um mês que <b>ainda não começou</b>. Perfeito — assim é possível se organizar com antecedência.</div>', unsafe_allow_html=True)
+    elif eh_mes_atual:
+        st.markdown(f'<div style="font-size:0.75rem;color:#c05e00;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:8px 12px;margin-bottom:14px;">📌 Você está ajustando o planejamento do mês <b>corrente</b>. A projeção abaixo já combina o que foi planejado com o que já foi de fato lançado.</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div style="font-size:0.75rem;color:#1a6645;background:#f4faf7;border:1px solid #d0e8db;border-radius:8px;padding:8px 12px;margin-bottom:14px;">🗂️ Você está revisando o planejamento de um mês passado.</div>', unsafe_allow_html=True)
+
+    plano = get_mes_planejamento(chave_mes_pl)
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ── Renda prevista ──
+    st.markdown('<div class="section-title">💵 Renda Prevista</div>', unsafe_allow_html=True)
+    renda_prevista_pl = st.number_input("Quanto você espera receber neste mês?", min_value=0.0,
+                                         value=float(plano.get("renda_prevista", 0.0)), step=50.0,
+                                         format="%.2f", key="pl_renda")
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ── Eventos e gastos previstos do mês ──
+    st.markdown('<div class="section-title">🎉 Eventos e Gastos Previstos</div>', unsafe_allow_html=True)
+    st.caption("Coisas pontuais que você já sabe que vão acontecer nesse mês: uma viagem, um aniversário, uma compra planejada, um curso...")
+
+    todas_categorias_pl = sorted(set(categorias_disponiveis("despesa")) | {"Casa","Carro","Moto","Saúde","Educação","Lazer","Presentes","Outros"})
+
+    df_eventos_base = pd.DataFrame(plano.get("eventos", []))
+    if df_eventos_base.empty:
+        df_eventos_base = pd.DataFrame(columns=["descricao", "categoria", "valor_estimado"])
+    df_eventos_edit = df_eventos_base.rename(columns={"descricao":"Evento","categoria":"Categoria","valor_estimado":"Valor Estimado (R$)"})
+
+    df_eventos_novo = st.data_editor(
+        df_eventos_edit, num_rows="dynamic", use_container_width=True, hide_index=True, key="pl_eventos_editor",
+        column_config={
+            "Evento": st.column_config.TextColumn("Evento", required=True),
+            "Categoria": st.column_config.SelectboxColumn("Categoria", options=todas_categorias_pl, required=True),
+            "Valor Estimado (R$)": st.column_config.NumberColumn("Valor Estimado (R$)", min_value=0.0, format="%.2f", required=True),
+        }
+    )
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ── Custos fixos e parcelas ──
+    st.markdown('<div class="section-title">📌 Custos Fixos e Parcelas</div>', unsafe_allow_html=True)
+    st.caption("Contas que se repetem (aluguel, internet, assinaturas) e parcelas em andamento (financiamentos, compras parceladas).")
+
+    df_fixos_base = pd.DataFrame(plano.get("fixos_parcelas", []))
+    if df_fixos_base.empty:
+        df_fixos_base = pd.DataFrame(columns=["descricao", "categoria", "valor", "tipo", "parcelas_restantes"])
+    df_fixos_edit = df_fixos_base.rename(columns={"descricao":"Descrição","categoria":"Categoria","valor":"Valor (R$)",
+                                                    "tipo":"Tipo","parcelas_restantes":"Parcelas Restantes"})
+
+    df_fixos_novo = st.data_editor(
+        df_fixos_edit, num_rows="dynamic", use_container_width=True, hide_index=True, key="pl_fixos_editor",
+        column_config={
+            "Descrição": st.column_config.TextColumn("Descrição", required=True),
+            "Categoria": st.column_config.SelectboxColumn("Categoria", options=todas_categorias_pl, required=True),
+            "Valor (R$)": st.column_config.NumberColumn("Valor (R$)", min_value=0.0, format="%.2f", required=True),
+            "Tipo": st.column_config.SelectboxColumn("Tipo", options=["Fixo", "Parcela"], required=True),
+            "Parcelas Restantes": st.column_config.NumberColumn("Parcelas Restantes", min_value=0, step=1, help="Deixe 0 ou em branco para custos fixos sem parcelamento."),
+        }
+    )
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ── Limites de gastos por categoria ──
+    st.markdown('<div class="section-title">🚧 Limites de Gastos por Categoria</div>', unsafe_allow_html=True)
+    st.caption("Defina até quanto você quer gastar em cada categoria. A aba 🔎 Análise e Insights vai te avisar quando estiver perto de estourar.")
+
+    limites_atuais = plano.get("limites_categoria", {})
+    df_limites_base = pd.DataFrame(
+        [{"Categoria": c, "Limite (R$)": v} for c, v in limites_atuais.items()]
+    ) if limites_atuais else pd.DataFrame(columns=["Categoria", "Limite (R$)"])
+
+    df_limites_novo = st.data_editor(
+        df_limites_base, num_rows="dynamic", use_container_width=True, hide_index=True, key="pl_limites_editor",
+        column_config={
+            "Categoria": st.column_config.SelectboxColumn("Categoria", options=todas_categorias_pl, required=True),
+            "Limite (R$)": st.column_config.NumberColumn("Limite (R$)", min_value=0.0, format="%.2f", required=True),
+        }
+    )
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ── Metas de poupança e investimento ──
+    st.markdown('<div class="section-title">🐷 Metas de Poupança e Investimento</div>', unsafe_allow_html=True)
+    col_meta1, col_meta2 = st.columns(2)
+    with col_meta1:
+        meta_poupanca_pl = st.number_input("💰 Meta de poupança do mês (R$)", min_value=0.0,
+                                            value=float(plano.get("meta_poupanca", 0.0)), step=50.0,
+                                            format="%.2f", key="pl_meta_poupanca")
+    with col_meta2:
+        meta_invest_pl = st.number_input("📈 Meta de investimento do mês (R$)", min_value=0.0,
+                                          value=float(plano.get("meta_investimento", 0.0)), step=50.0,
+                                          format="%.2f", key="pl_meta_invest")
+
+    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+    if st.button("💾 Salvar Planejamento do Mês", type="primary", use_container_width=True, key="pl_salvar"):
+        eventos_novos = []
+        for _, row in df_eventos_novo.iterrows():
+            desc_e = str(row.get("Evento", "")).strip()
+            cat_e  = str(row.get("Categoria", "")).strip()
+            val_e  = row.get("Valor Estimado (R$)", 0)
+            if desc_e and desc_e.lower() != "nan" and cat_e and cat_e.lower() != "nan" and pd.notna(val_e):
+                eventos_novos.append({"descricao": desc_e, "categoria": cat_e, "valor_estimado": float(val_e)})
+
+        fixos_novos = []
+        for _, row in df_fixos_novo.iterrows():
+            desc_f = str(row.get("Descrição", "")).strip()
+            cat_f  = str(row.get("Categoria", "")).strip()
+            val_f  = row.get("Valor (R$)", 0)
+            tipo_f = str(row.get("Tipo", "Fixo")).strip() or "Fixo"
+            parc_f = row.get("Parcelas Restantes", 0)
+            parc_f = int(parc_f) if pd.notna(parc_f) else 0
+            if desc_f and desc_f.lower() != "nan" and cat_f and cat_f.lower() != "nan" and pd.notna(val_f):
+                fixos_novos.append({"descricao": desc_f, "categoria": cat_f, "valor": float(val_f),
+                                     "tipo": tipo_f, "parcelas_restantes": parc_f})
+
+        limites_novos = {}
+        for _, row in df_limites_novo.iterrows():
+            cat_l = str(row.get("Categoria", "")).strip()
+            lim_l = row.get("Limite (R$)", 0)
+            if cat_l and cat_l.lower() != "nan" and pd.notna(lim_l):
+                limites_novos[cat_l] = float(lim_l)
+
+        plano["renda_prevista"] = float(renda_prevista_pl)
+        plano["eventos"] = eventos_novos
+        plano["fixos_parcelas"] = fixos_novos
+        plano["limites_categoria"] = limites_novos
+        plano["meta_poupanca"] = float(meta_poupanca_pl)
+        plano["meta_investimento"] = float(meta_invest_pl)
+        st.session_state.planejamento_map[chave_mes_pl] = plano
+        persistir_planejamento()
+        st.success("✅ Planejamento salvo com sucesso!")
+        st.rerun()
+
+    # ── Projeção por categoria ──
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📊 Projeção de Gastos por Categoria</div>', unsafe_allow_html=True)
+
+    proj_map = {}
+    for e in plano.get("eventos", []):
+        proj_map[e["categoria"]] = proj_map.get(e["categoria"], 0) + e.get("valor_estimado", 0)
+    for f in plano.get("fixos_parcelas", []):
+        proj_map[f["categoria"]] = proj_map.get(f["categoria"], 0) + f.get("valor", 0)
+
+    # Combina com o que já foi de fato gasto no mês selecionado (útil quando o mês já começou)
+    real_mes_map = {}
+    for l in lancamentos:
+        d_l = datetime.strptime(l["data"], "%Y-%m-%d").date()
+        if d_l.year == ano_sel_pl and d_l.month == mes_num_pl and l["tipo"] != "Receita":
+            real_mes_map[l["classe"]] = real_mes_map.get(l["classe"], 0) + l["valor"]
+
+    if proj_map or real_mes_map:
+        todas_cats_proj = sorted(set(proj_map.keys()) | set(real_mes_map.keys()))
+        vals_proj  = [proj_map.get(c, 0) for c in todas_cats_proj]
+        vals_real  = [real_mes_map.get(c, 0) for c in todas_cats_proj]
+        vals_limite = [limites_atuais.get(c, plano.get("limites_categoria", {}).get(c, 0)) for c in todas_cats_proj]
+
+        fig_proj = go.Figure()
+        fig_proj.add_trace(go.Bar(name="Planejado", x=todas_cats_proj, y=vals_proj,
+                                   marker_color="#4dc882",
+                                   text=[fmt_brl(v) for v in vals_proj], textposition="outside",
+                                   hovertemplate="<b>%{x}</b><br>Planejado: R$ %{y:,.2f}<extra></extra>"))
+        if any(vals_real):
+            fig_proj.add_trace(go.Bar(name="Já gasto", x=todas_cats_proj, y=vals_real,
+                                       marker_color="#c0392b",
+                                       text=[fmt_brl(v) for v in vals_real], textposition="outside",
+                                       hovertemplate="<b>%{x}</b><br>Já gasto: R$ %{y:,.2f}<extra></extra>"))
+        if any(vals_limite):
+            fig_proj.add_trace(go.Scatter(name="Limite definido", x=todas_cats_proj, y=vals_limite,
+                                           mode="markers", marker=dict(symbol="line-ew", size=26, color="#f1c40f", line=dict(width=3, color="#f1c40f")),
+                                           hovertemplate="<b>%{x}</b><br>Limite: R$ %{y:,.2f}<extra></extra>"))
+
+        fig_proj.update_layout(
+            barmode="group", paper_bgcolor="white", plot_bgcolor="#f4faf7",
+            height=320, margin=dict(t=10, b=40, l=10, r=10), font=dict(family="DM Sans"),
+            legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
+            yaxis=dict(tickprefix="R$ ", gridcolor="#eef5f1"),
+            xaxis=dict(gridcolor="rgba(0,0,0,0)")
+        )
+        st.plotly_chart(fig_proj, use_container_width=True)
+
+        total_planejado = sum(vals_proj)
+        saldo_proj = renda_prevista_pl - total_planejado
+        pk1, pk2, pk3 = st.columns(3)
+        with pk1:
+            st.markdown(f"""<div class="kpi verde"><div class="kpi-label">Renda Prevista</div>
+              <div class="kpi-value pos">{fmt_brl(renda_prevista_pl)}</div></div>""", unsafe_allow_html=True)
+        with pk2:
+            st.markdown(f"""<div class="kpi vermelho"><div class="kpi-label">Total Planejado (Gastos)</div>
+              <div class="kpi-value neg">{fmt_brl(total_planejado)}</div></div>""", unsafe_allow_html=True)
+        with pk3:
+            cor_saldo_proj = "pos" if saldo_proj >= 0 else "neg"
+            bor_saldo_proj = "verde" if saldo_proj >= 0 else "vermelho"
+            st.markdown(f"""<div class="kpi {bor_saldo_proj}"><div class="kpi-label">Saldo Projetado</div>
+              <div class="kpi-value {cor_saldo_proj}">{fmt_brl(saldo_proj)}</div></div>""", unsafe_allow_html=True)
+
+        if saldo_proj >= (meta_poupanca_pl + meta_invest_pl) and (meta_poupanca_pl + meta_invest_pl) > 0:
+            st.success(f"🎉 Pelo planejado, sobra o suficiente para bater suas metas de poupança e investimento ({fmt_brl(meta_poupanca_pl + meta_invest_pl)})!")
+        elif (meta_poupanca_pl + meta_invest_pl) > 0:
+            falta_meta = (meta_poupanca_pl + meta_invest_pl) - saldo_proj
+            st.warning(f"⚠️ Do jeito que está planejado, ainda faltam {fmt_brl(falta_meta)} para alcançar suas metas de poupança + investimento neste mês.")
+    else:
+        st.info("Adicione eventos, custos fixos ou parcelas acima para ver a projeção por categoria.")
+
+# ══════════════════════════════════════════════════════════════════
+# ANÁLISE E INSIGHTS
+# ══════════════════════════════════════════════════════════════════
+with selected_tab[2]:  # Análise e Insights
+    st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Análise <span style=\'color:#00704A\'>e Insights</span></div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:16px;">O que os seus números estão tentando te dizer — do problema mais urgente para o menos urgente.</div>', unsafe_allow_html=True)
+
+    hoje_ai = date.today()
+    dias_no_mes = (date(hoje_ai.year + (1 if hoje_ai.month == 12 else 0), (hoje_ai.month % 12) + 1, 1) - timedelta(days=1)).day
+    dia_atual = hoje_ai.day
+    fracao_mes_passado = dia_atual / dias_no_mes
+
+    chave_mes_ai = f"{hoje_ai.year}-{hoje_ai.month:02d}"
+    plano_ai = get_mes_planejamento(chave_mes_ai)
+
+    lanc_mes_atual = [l for l in lancamentos
+                      if datetime.strptime(l["data"], "%Y-%m-%d").date().year == hoje_ai.year
+                      and datetime.strptime(l["data"], "%Y-%m-%d").date().month == hoje_ai.month]
+    despesas_mes_atual = [l for l in lanc_mes_atual if l["tipo"] != "Receita"]
+    receitas_mes_atual = [l for l in lanc_mes_atual if l["tipo"] == "Receita"]
+
+    gasto_por_cat_atual = {}
+    for l in despesas_mes_atual:
+        gasto_por_cat_atual[l["classe"]] = gasto_por_cat_atual.get(l["classe"], 0) + l["valor"]
+
+    limites_ai = plano_ai.get("limites_categoria", {})
+
+    # Mês anterior, para comparação de tendência
+    mes_ant = hoje_ai.month - 1 or 12
+    ano_ant = hoje_ai.year if hoje_ai.month > 1 else hoje_ai.year - 1
+    lanc_mes_ant = [l for l in lancamentos
+                    if datetime.strptime(l["data"], "%Y-%m-%d").date().year == ano_ant
+                    and datetime.strptime(l["data"], "%Y-%m-%d").date().month == mes_ant
+                    and l["tipo"] != "Receita"]
+    gasto_por_cat_ant = {}
+    for l in lanc_mes_ant:
+        gasto_por_cat_ant[l["classe"]] = gasto_por_cat_ant.get(l["classe"], 0) + l["valor"]
+
+    insights = []  # cada item: (severidade 0=crítico..3=informativo, titulo, detalhe, cor)
+
+    # 1) Estouros de limite por categoria (o mais importante)
+    for cat, limite in limites_ai.items():
+        if limite <= 0:
+            continue
+        gasto_cat = gasto_por_cat_atual.get(cat, 0)
+        pct = gasto_cat / limite * 100
+        if pct >= 100:
+            excedente = gasto_cat - limite
+            insights.append((0, f"🔴 Estourou o limite de {cat}",
+                              f"Você já gastou {fmt_brl(gasto_cat)} de um limite de {fmt_brl(limite)} — {fmt_brl(excedente)} acima do combinado ({pct:.0f}% do limite).",
+                              "#c0392b"))
+        elif pct >= 80:
+            insights.append((1, f"🟠 {cat} perto do limite",
+                              f"Já foram usados {pct:.0f}% do limite de {cat} ({fmt_brl(gasto_cat)} de {fmt_brl(limite)}), e o mês ainda tem {dias_no_mes - dia_atual} dia(s) pela frente.",
+                              "#f39c12"))
+        elif pct >= fracao_mes_passado * 100 + 25 and dia_atual <= 20:
+            insights.append((2, f"🟡 Ritmo acelerado em {cat}",
+                              f"Já se passaram {pct:.0f}% do limite de {cat}, mas só {fracao_mes_passado*100:.0f}% do mês. No ritmo atual, a categoria deve estourar antes do fim do mês.",
+                              "#f1c40f"))
+
+    # 2) Projeção de estouro por ritmo diário (categorias sem limite excedido ainda, mas com limite definido)
+    if dia_atual > 3:
+        for cat, limite in limites_ai.items():
+            if limite <= 0:
+                continue
+            gasto_cat = gasto_por_cat_atual.get(cat, 0)
+            media_diaria = gasto_cat / dia_atual
+            projecao_fim_mes = media_diaria * dias_no_mes
+            if projecao_fim_mes > limite and gasto_cat < limite:
+                insights.append((1, f"📈 Projeção de estouro em {cat}",
+                                  f"No ritmo atual (~{fmt_brl(media_diaria)}/dia), a projeção é fechar o mês em {fmt_brl(projecao_fim_mes)}, {fmt_brl(projecao_fim_mes - limite)} acima do limite de {fmt_brl(limite)}.",
+                                  "#f39c12"))
+
+    # 3) Categorias sem limite definido mas com gasto relevante
+    total_despesas_atual = sum(gasto_por_cat_atual.values())
+    for cat, val in gasto_por_cat_atual.items():
+        if cat not in limites_ai and total_despesas_atual > 0 and (val / total_despesas_atual) >= 0.25:
+            insights.append((2, f"🔎 {cat} concentra boa parte dos gastos",
+                              f"{cat} já representa {val/total_despesas_atual*100:.0f}% de tudo que você gastou este mês ({fmt_brl(val)}), mas ainda não tem um limite definido no Planejamento.",
+                              "#3498db"))
+
+    # 4) Comparação com o mês anterior (tendências de alta)
+    for cat, val_atual in gasto_por_cat_atual.items():
+        val_ant = gasto_por_cat_ant.get(cat)
+        if val_ant and val_ant > 0:
+            variacao = (val_atual - val_ant) / val_ant * 100
+            # Compara de forma proporcional ao quanto do mês já passou
+            val_ant_proporcional = val_ant * fracao_mes_passado
+            if val_ant_proporcional > 0 and val_atual > val_ant_proporcional * 1.3 and val_atual > 100:
+                insights.append((2, f"📊 {cat} subiu em relação ao mês passado",
+                                  f"Até este ponto do mês, o gasto em {cat} está {((val_atual/val_ant_proporcional)-1)*100:.0f}% maior do que no mesmo período do mês anterior.",
+                                  "#8e44ad"))
+
+    # 5) Progresso das metas de poupança/investimento
+    saldo_mes_atual = sum(l["valor"] for l in receitas_mes_atual) - total_despesas_atual
+    meta_total_ai = plano_ai.get("meta_poupanca", 0) + plano_ai.get("meta_investimento", 0)
+    if meta_total_ai > 0:
+        pct_meta = saldo_mes_atual / meta_total_ai * 100
+        if pct_meta >= 100:
+            insights.append((3, "🎯 Meta de poupança/investimento batida",
+                              f"Seu saldo atual do mês ({fmt_brl(saldo_mes_atual)}) já cobre a meta combinada de {fmt_brl(meta_total_ai)}. Bom trabalho!",
+                              "#00704A"))
+        elif pct_meta < fracao_mes_passado * 100 - 20:
+            insights.append((1, "🎯 Meta de poupança/investimento em risco",
+                              f"Faltam {fmt_brl(meta_total_ai - saldo_mes_atual)} para bater a meta de {fmt_brl(meta_total_ai)} deste mês, e o mês já está {fracao_mes_passado*100:.0f}% concluído.",
+                              "#c0392b"))
+
+    # 6) Sem planejamento cadastrado
+    if not limites_ai and not plano_ai.get("eventos") and not plano_ai.get("fixos_parcelas"):
+        insights.append((3, "🗓️ Nenhum planejamento cadastrado para este mês",
+                          "Vá até a aba 🗓️ Planejamento e monte o orçamento do mês para receber alertas mais precisos aqui.",
+                          "#1a6645"))
+
+    # Ordena por severidade (piores primeiro)
+    insights.sort(key=lambda x: x[0])
+
+    if not insights:
+        st.success("✅ Nenhum alerta no momento. Seus gastos estão dentro do esperado para este ponto do mês!")
+    else:
+        st.markdown(f'<div style="font-size:0.78rem;color:#1a6645;margin-bottom:10px;">📅 Análise referente a {meses_nomes_pl[hoje_ai.month-1]}/{hoje_ai.year} · dia {dia_atual} de {dias_no_mes} ({fracao_mes_passado*100:.0f}% do mês) · {len(insights)} ponto(s) de atenção, do mais urgente ao menos urgente.</div>', unsafe_allow_html=True)
+        for sev, titulo, detalhe, cor in insights:
+            st.markdown(f"""<div style="background:#fff;border-left:5px solid {cor};border-radius:10px;
+              padding:14px 18px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);">
+              <div style="font-family:Syne,sans-serif;font-weight:700;font-size:0.95rem;color:#0d2b1e;">{titulo}</div>
+              <div style="font-size:0.82rem;color:#1a6645;margin-top:4px;">{detalhe}</div>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ── Visão geral: Planejado x Real por categoria ──
+    if limites_ai or gasto_por_cat_atual:
+        st.markdown('<div class="section-title">📐 Planejado x Real por Categoria</div>', unsafe_allow_html=True)
+        cats_geral = sorted(set(limites_ai.keys()) | set(gasto_por_cat_atual.keys()))
+        for cat in cats_geral:
+            limite_c = limites_ai.get(cat, 0)
+            gasto_c  = gasto_por_cat_atual.get(cat, 0)
+            if limite_c > 0:
+                pct_c = min(gasto_c / limite_c * 100, 100)
+                cor_barra = "#c0392b" if gasto_c >= limite_c else ("#f39c12" if gasto_c / limite_c >= 0.8 else "#05C47A")
+                texto_pct = f"{gasto_c/limite_c*100:.0f}%"
+            else:
+                pct_c = 0
+                cor_barra = "#b0b0b0"
+                texto_pct = "sem limite"
+            st.markdown(f"""<div style="margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#1a6645;">
+                <span><b>{cat}</b></span>
+                <span>{fmt_brl(gasto_c)}{f' / {fmt_brl(limite_c)}' if limite_c > 0 else ''} · {texto_pct}</span>
+              </div>
+              <div style="background:#d0e8db;border-radius:5px;height:8px;margin-top:3px;">
+                <div style="width:{pct_c}%;background:{cor_barra};height:8px;border-radius:5px;"></div>
+              </div>
+            </div>""", unsafe_allow_html=True)
+    else:
+        st.info("Assim que você tiver limites definidos no Planejamento e lançamentos registrados, essa comparação aparece aqui.")
+
+# ══════════════════════════════════════════════════════════════════
 # LANÇAMENTOS
 # ══════════════════════════════════════════════════════════════════
-with selected_tab[1]:  # Lançamentos
+with selected_tab[3]:  # Lançamentos
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Novo <span style=\'color:#00704A\'>Lançamento</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Informe data e valor, e escolha a Categoria (visão macro) e a Descrição (detalhe) cadastradas na aba 🏷️ Descrições.</div>', unsafe_allow_html=True)
 
@@ -1082,7 +1534,11 @@ with selected_tab[1]:  # Lançamentos
         with c2:
             valor_input = st.number_input("💰 Valor (R$)", min_value=0.01, step=0.01, format="%.2f", key="ml_valor")
 
-        tipo_input_lbl = st.radio("Tipo", ["💵 Receita", "💸 Despesa"], horizontal=True, key="ml_tipo")
+        c_tipo, c_pgto = st.columns(2)
+        with c_tipo:
+            tipo_input_lbl = st.radio("Tipo", ["💵 Receita", "💸 Despesa"], horizontal=True, key="ml_tipo")
+        with c_pgto:
+            forma_pagamento_input = st.selectbox("💳 Forma de Pagamento", FORMAS_PAGAMENTO, key="ml_forma_pagamento")
         TIPO_LBL_MAP = {"💵 Receita": "Receita", "💸 Despesa": "Despesa"}
         tipo_final = TIPO_LBL_MAP[tipo_input_lbl]
         tipo_chave = "receita" if tipo_final == "Receita" else "despesa"
@@ -1113,6 +1569,7 @@ with selected_tab[1]:  # Lançamentos
                     "valor": float(valor_input),
                     "descricao": descricao_input,
                     "categoria_extra": "",
+                    "forma_pagamento": forma_pagamento_input,
                     "tipo": tipo_final, "classe": categoria_input, "icone": icone_final,
                 }
                 st.session_state.lancamentos.insert(0, novo)
@@ -1139,6 +1596,10 @@ with selected_tab[1]:  # Lançamentos
             horizontal=True, key="tipo_import_excel"
         )
         eh_receita_import = tipo_import_excel == "💰 Receitas"
+        forma_pagamento_import = st.selectbox(
+            "💳 Forma de Pagamento (aplicada a todas as linhas desta importação)",
+            FORMAS_PAGAMENTO, key="forma_pagamento_import"
+        )
 
         arquivo_excel = st.file_uploader("Selecionar arquivo Excel", type=["xlsx", "xls"], key="excel_uploader")
 
@@ -1199,12 +1660,12 @@ with selected_tab[1]:  # Lançamentos
                 col_cat_extra_x = None
                 if not eh_receita_import:
                     usar_cat_extra_despesa = st.checkbox(
-                        "Usar uma coluna como Categoria/Veículo (ex: Moto) para poder segmentar os gastos depois",
+                        "Usar uma coluna como Categoria (ex: Alimentação) para poder segmentar os gastos depois",
                         key="usar_cat_extra_despesa_check"
                     )
                     if usar_cat_extra_despesa:
                         col_cat_extra_x = st.selectbox(
-                            "🏷️ Coluna que representa a Categoria/Veículo",
+                            "🏷️ Coluna que representa a Categoria",
                             colunas_disp,
                             index=0,
                             key="col_cat_extra_x_sel",
@@ -1355,6 +1816,7 @@ with selected_tab[1]:  # Lançamentos
                                 "valor": float(item["valor"]),
                                 "descricao": item["desc"],
                                 "categoria_extra": item.get("cat_extra", ""),
+                                "forma_pagamento": forma_pagamento_import,
                                 "tipo": tipo_i, "classe": cls_i, "icone": ico_i,
                             })
                             importados += 1
@@ -1379,6 +1841,7 @@ with selected_tab[1]:  # Lançamentos
                                         "data": d_str, "valor": float(v_f),
                                         "descricao": str(s_f).strip(),
                                         "categoria_extra": item.get("cat_extra", ""),
+                                        "forma_pagamento": forma_pagamento_import,
                                         "tipo": tipo_j, "classe": cls_j, "icone": ico_j,
                                     })
                                     importados += 1
@@ -1407,7 +1870,7 @@ with selected_tab[1]:  # Lançamentos
 # ══════════════════════════════════════════════════════════════════
 # HISTÓRICO — com aba "Apagados" embutida
 # ══════════════════════════════════════════════════════════════════
-with selected_tab[2]:  # Histórico
+with selected_tab[4]:  # Histórico
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Histórico <span style=\'color:#00704A\'>& Apagados</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:16px;">Gerencie seus lançamentos e itens excluídos em um só lugar.</div>', unsafe_allow_html=True)
 
@@ -1425,7 +1888,7 @@ with selected_tab[2]:  # Histórico
             categorias_extra_disp = sorted({l.get("categoria_extra", "") for l in lista if l.get("categoria_extra")})
             if categorias_extra_disp:
                 filtro_cat_extra = st.selectbox(
-                    "🏷️ Filtrar por Categoria/Veículo:",
+                    "🏷️ Filtrar por Categoria:",
                     ["Todas"] + categorias_extra_disp,
                     key="filtro_cat_extra_lanc"
                 )
@@ -1437,11 +1900,12 @@ with selected_tab[2]:  # Histórico
                 sinal = "+" if l["tipo"] == "Receita" else "-"
                 cor_val = "#00704A" if l["tipo"] == "Receita" else "#c0392b"
                 cat_extra_tag = f' · 🏷️ {l["categoria_extra"]}' if l.get("categoria_extra") else ""
+                pgto_tag = badge_pagamento(l.get("forma_pagamento", "Cartão"))
                 col_info, col_val, col_edit, col_btn = st.columns([5, 2, 0.8, 0.8])
                 with col_info:
                     st.markdown(f"""<div style="background:#fff;border-radius:10px;padding:12px 16px;
                       border:1.5px solid #b8e8d4;margin-bottom:6px;">
-                      <div style="font-size:0.72rem;color:#1a6645;">{data_fmt} · {badge_tipo(l['tipo'])} {badge_classe(l['classe'])}{cat_extra_tag}</div>
+                      <div style="font-size:0.72rem;color:#1a6645;">{data_fmt} · {badge_tipo(l['tipo'])} {badge_classe(l['classe'])} {pgto_tag}{cat_extra_tag}</div>
                       <div style="font-size:0.92rem;font-weight:600;color:#0d2b1e;margin-top:3px;">{l['icone']} {l['descricao']}</div>
                     </div>""", unsafe_allow_html=True)
                 with col_val:
@@ -1471,6 +1935,12 @@ with selected_tab[2]:  # Histórico
                     with ec1:
                         data_edit = st.date_input("📅 Data", value=data_val_edit, key=f"edit_d_{l['id']}")
                         valor_edit = st.number_input("💰 Valor", min_value=0.01, value=max(float(l["valor"]), 0.01), step=0.01, format="%.2f", key=f"edit_v_{l['id']}")
+                        forma_atual_edit = l.get("forma_pagamento", "Cartão")
+                        forma_pagamento_edit = st.selectbox(
+                            "💳 Forma de Pagamento", FORMAS_PAGAMENTO,
+                            index=FORMAS_PAGAMENTO.index(forma_atual_edit) if forma_atual_edit in FORMAS_PAGAMENTO else 2,
+                            key=f"edit_pgto_{l['id']}"
+                        )
                     with ec2:
                         # Lançamentos antigos podem ter tipo "Fixo"/"Variável"; tratamos como Despesa por padrão.
                         idx_tipo_edit = 0 if l["tipo"] == "Receita" else 1
@@ -1491,7 +1961,7 @@ with selected_tab[2]:  # Histórico
                     desc_edit = st.selectbox("📝 Descrição", desc_opts_edit,
                                               index=desc_opts_edit.index(l["descricao"]),
                                               key=f"edit_s_{l['id']}_{tipo_chave_edit}_{classe_edit}")
-                    cat_extra_edit = st.text_input("🏷️ Categoria/Veículo (opcional)", value=l.get("categoria_extra", ""),
+                    cat_extra_edit = st.text_input("🏷️ Categoria (opcional)", value=l.get("categoria_extra", ""),
                                                     placeholder="Ex: Moto, Carro, Casa...", key=f"edit_cat_{l['id']}")
 
                     col_save_e, col_cancel_e = st.columns(2)
@@ -1507,6 +1977,7 @@ with selected_tab[2]:  # Histórico
                         l["tipo"] = tipo_edit
                         l["classe"] = classe_edit
                         l["categoria_extra"] = cat_extra_edit.strip()
+                        l["forma_pagamento"] = forma_pagamento_edit
                         l["icone"] = ICONE_TIPO_EDIT.get(tipo_edit, "💸")
                         persistir()
                         st.session_state.editando_lanc_id = None
@@ -1560,100 +2031,101 @@ with selected_tab[2]:  # Histórico
 # ══════════════════════════════════════════════════════════════════
 # DESCRIÇÕES (tabela de-para Categoria x Descrição, importável via Excel)
 # ══════════════════════════════════════════════════════════════════
-with selected_tab[3]:  # Descrições
+with selected_tab[5]:  # Descrições
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Categorias <span style=\'color:#00704A\'>& Descrições</span></div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Categoria é a visão macro usada nos relatórios (ex: Alimentação). Descrição é o detalhe (ex: Mercado, Restaurante). Há uma planilha separada para Despesas e outra para Receitas. Baixe, ajuste no Excel e importe de volta — lançamentos já registrados mantêm a categoria/descrição do momento em que foram feitos.</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Categoria é a visão macro usada nos relatórios (ex: Alimentação). Descrição é o detalhe (ex: Mercado, Restaurante). Edite direto na tabela abaixo — lançamentos já registrados mantêm a categoria/descrição do momento em que foram feitos.</div>', unsafe_allow_html=True)
 
-    def _bloco_categorias(tipo_chave, titulo, cor_icone):
+    def _bloco_categorias(tipo_chave, titulo):
         lista_atual = st.session_state.categorias_map.get(tipo_chave, [])
-        df_map = pd.DataFrame(lista_atual) if lista_atual else pd.DataFrame(columns=["categoria", "descricao"])
+        df_atual = pd.DataFrame(lista_atual) if lista_atual else pd.DataFrame(columns=["categoria", "descricao"])
+        df_edit_base = df_atual.rename(columns={"categoria": "Categoria", "descricao": "Descrição"})
 
-        col_dl, col_up = st.columns(2)
-        with col_dl:
-            st.markdown(f'<div class="section-title">⬇️ Baixar planilha de {titulo}</div>', unsafe_allow_html=True)
-            st.caption("Baixe, ajuste as categorias/descrições no Excel e importe novamente.")
-            df_export = df_map.rename(columns={"categoria": "Categoria", "descricao": "Descrição"})
-            if df_export.empty:
-                df_export = pd.DataFrame(columns=["Categoria", "Descrição"])
-            buffer_cat = io.BytesIO()
-            with pd.ExcelWriter(buffer_cat, engine="openpyxl") as writer:
-                df_export.to_excel(writer, index=False, sheet_name=titulo)
-            st.download_button(
-                f"📥 Baixar {titulo}.xlsx",
-                data=buffer_cat.getvalue(),
-                file_name=f"Descricoes_{titulo}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True,
-                key=f"dl_{tipo_chave}",
+        st.markdown(f'<div class="section-title">📋 Categorias e Descrições de {titulo}</div>', unsafe_allow_html=True)
+        st.caption("Edite direto na tabela: clique numa célula para alterar. Use a última linha (em branco) para adicionar um item novo, e selecione uma linha para ver o ícone de lixeira e removê-la. Depois clique em Salvar.")
+
+        busca = st.text_input("🔍 Buscar categoria ou descrição", key=f"busca_{tipo_chave}", placeholder="Digite para filtrar a tabela...")
+
+        if busca:
+            termo = busca.strip().lower()
+            mask = (
+                df_edit_base["Categoria"].str.lower().str.contains(termo, na=False)
+                | df_edit_base["Descrição"].str.lower().str.contains(termo, na=False)
             )
-
-        with col_up:
-            st.markdown(f'<div class="section-title">⬆️ Importar planilha de {titulo}</div>', unsafe_allow_html=True)
-            st.caption("Envie um .xlsx com as colunas Categoria e Descrição.")
-            arq_cat = st.file_uploader("Selecionar arquivo", type=["xlsx", "xls"], key=f"upload_categorias_{tipo_chave}")
-
-            if arq_cat:
-                try:
-                    try:
-                        import openpyxl  # noqa: F401
-                    except ImportError:
-                        import subprocess, sys
-                        subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl", "--quiet"])
-                        import openpyxl  # noqa: F401
-                    df_up = pd.read_excel(arq_cat, engine="openpyxl")
-                except Exception as e:
-                    st.error(f"❌ Erro ao ler o arquivo: {e}")
-                    df_up = None
-
-                if df_up is not None and not df_up.empty:
-                    cols_lower = {str(c).lower().strip(): c for c in df_up.columns}
-                    col_cat  = next((cols_lower[c] for c in cols_lower if "categ" in c), None)
-                    col_desc = next((cols_lower[c] for c in cols_lower if "descri" in c), None)
-
-                    if not col_cat or not col_desc:
-                        st.error("A planilha precisa ter uma coluna de Categoria e uma de Descrição.")
-                    else:
-                        nova_lista, vistos = [], set()
-                        for _, row in df_up.iterrows():
-                            cat_v  = str(row[col_cat]).strip()  if pd.notna(row[col_cat])  else ""
-                            desc_v = str(row[col_desc]).strip() if pd.notna(row[col_desc]) else ""
-                            if cat_v and desc_v:
-                                chave = (cat_v.lower(), desc_v.lower())
-                                if chave not in vistos:
-                                    vistos.add(chave)
-                                    nova_lista.append({"categoria": cat_v, "descricao": desc_v})
-
-                        st.info(f"📄 {len(nova_lista)} combinações de Categoria/Descrição prontas para importar.")
-                        st.dataframe(
-                            pd.DataFrame(nova_lista).rename(columns={"categoria": "Categoria", "descricao": "Descrição"}),
-                            use_container_width=True, hide_index=True,
-                        )
-                        if st.button("✅ Confirmar importação", type="primary", use_container_width=True, key=f"confirmar_import_{tipo_chave}"):
-                            st.session_state.categorias_map[tipo_chave] = nova_lista
-                            persistir_categorias()
-                            st.success(f"✅ {len(nova_lista)} combinações de {titulo} importadas com sucesso!")
-                            st.rerun()
-
-        st.markdown(f'<div class="section-title">📋 Categorias e Descrições de {titulo} cadastradas</div>', unsafe_allow_html=True)
-        if df_map.empty:
-            st.info(f"Nenhuma categoria de {titulo} cadastrada ainda. Importe uma planilha acima para começar.")
+            df_visivel = df_edit_base[mask].copy()
+            df_oculto  = df_edit_base[~mask].copy()
         else:
-            st.dataframe(
-                df_map.rename(columns={"categoria": "Categoria", "descricao": "Descrição"})
-                      .sort_values(["Categoria", "Descrição"]),
-                use_container_width=True, hide_index=True,
-            )
+            df_visivel = df_edit_base.copy()
+            df_oculto  = df_edit_base.iloc[0:0].copy()
+
+        df_editado_visivel = st.data_editor(
+            df_visivel,
+            num_rows="dynamic",
+            use_container_width=True,
+            hide_index=True,
+            key=f"editor_{tipo_chave}",
+            column_config={
+                "Categoria": st.column_config.TextColumn("Categoria", required=True),
+                "Descrição": st.column_config.TextColumn("Descrição", required=True),
+            }
+        )
+
+        if busca:
+            st.caption(f"Mostrando {len(df_visivel)} de {len(df_edit_base)} linha(s). As demais linhas não somem — só ficam ocultas enquanto o filtro estiver ativo.")
+
+        col_salvar, col_restaurar = st.columns(2)
+
+        with col_salvar:
+            if st.button(f"💾 Salvar alterações de {titulo}", type="primary", use_container_width=True, key=f"salvar_{tipo_chave}"):
+                df_final = pd.concat([df_oculto, df_editado_visivel], ignore_index=True)
+                nova_lista, vistos = [], set()
+                for _, row in df_final.iterrows():
+                    cat_v = str(row.get("Categoria", "")).strip()
+                    desc_v = str(row.get("Descrição", "")).strip()
+                    if cat_v and desc_v and cat_v.lower() != "nan" and desc_v.lower() != "nan":
+                        chave = (cat_v.lower(), desc_v.lower())
+                        if chave not in vistos:
+                            vistos.add(chave)
+                            nova_lista.append({"categoria": cat_v, "descricao": desc_v})
+                st.session_state.categorias_map[tipo_chave] = nova_lista
+                persistir_categorias()
+                st.success(f"✅ {len(nova_lista)} combinações de {titulo} salvas com sucesso!")
+                st.rerun()
+
+        with col_restaurar:
+            confirm_key = f"confirmar_restaurar_{tipo_chave}"
+            if not st.session_state.get(confirm_key, False):
+                if st.button("🏭 Restaurar padrão de fábrica", use_container_width=True, key=f"restaurar_{tipo_chave}"):
+                    st.session_state[confirm_key] = True
+                    st.rerun()
+            else:
+                st.warning(f"⚠️ Isso vai substituir TODAS as categorias/descrições de {titulo} pela lista padrão original. Lançamentos já feitos não são afetados.")
+                cc1, cc2 = st.columns(2)
+                with cc1:
+                    if st.button("✅ Confirmar restauração", type="primary", use_container_width=True, key=f"conf_restaurar_{tipo_chave}"):
+                        padrao = _despesas_padrao() if tipo_chave == "despesa" else _receitas_padrao()
+                        st.session_state.categorias_map[tipo_chave] = padrao
+                        persistir_categorias()
+                        st.session_state[confirm_key] = False
+                        st.success(f"✅ Categorias de {titulo} restauradas ao padrão de fábrica!")
+                        st.rerun()
+                with cc2:
+                    if st.button("✕ Cancelar", use_container_width=True, key=f"canc_restaurar_{tipo_chave}"):
+                        st.session_state[confirm_key] = False
+                        st.rerun()
+
+            st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+        qtd_categorias_salvas = len(st.session_state.categorias_map.get(tipo_chave, []))
+        st.caption(f"✅ Atualmente {qtd_categorias_salvas} combinação(ões) de Categoria/Descrição salva(s) para {titulo}.")
 
     aba_desc = st.tabs(["💸 Despesas", "💵 Receitas"])
     with aba_desc[0]:
-        _bloco_categorias("despesa", "Despesas", "#c0392b")
+        _bloco_categorias("despesa", "Despesas")
     with aba_desc[1]:
-        _bloco_categorias("receita", "Receitas", "#00704A")
-
+        _bloco_categorias("receita", "Receitas")
 # ══════════════════════════════════════════════════════════════════
 # CONTA
 # ══════════════════════════════════════════════════════════════════
-with selected_tab[4] if len(selected_tab) > 4 else selected_tab[0]:  # Conta
+with selected_tab[6] if len(selected_tab) > 6 else selected_tab[0]:  # Conta
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Minha <span style=\'color:#00704A\'>Conta</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Altere sua senha de acesso quando quiser.</div>', unsafe_allow_html=True)
 
@@ -1679,7 +2151,7 @@ with selected_tab[4] if len(selected_tab) > 4 else selected_tab[0]:  # Conta
                     save_users(usuarios_conta)
                     st.success("✅ Senha alterada com sucesso!")
 
-with selected_tab[5] if len(selected_tab) > 5 else selected_tab[0]:  # Usuários (admin)
+with selected_tab[7] if len(selected_tab) > 7 else selected_tab[0]:  # Usuários (admin)
     if not st.session_state.is_admin:
         st.error("Acesso restrito ao administrador.")
     else:
