@@ -1133,7 +1133,6 @@ with selected_tab[0]:  # Dashboard
 
 # ══════════════════════════════════════════════════════════════════
 # PLANEJAMENTO
-# ══════════════════════════════════════════════════════════════════
 with selected_tab[1]:  # Planejamento
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Planejamento <span style=\'color:#00704A\'>do Mês</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:16px;">Monte o orçamento antes do mês começar: informe a renda prevista, os eventos e parcelas esperados, defina limites por categoria e metas de poupança/investimento — e veja a projeção antes mesmo de gastar um centavo.</div>', unsafe_allow_html=True)
@@ -1143,10 +1142,9 @@ with selected_tab[1]:  # Planejamento
     meses_nomes_pl = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
     col_mes_pl, col_ano_pl, col_dummy_pl = st.columns([2, 1.2, 3])
     with col_mes_pl:
-        # Sugere o mês seguinte como padrão (planejar ANTES do mês começar), mas permite escolher qualquer mês
-        mes_padrao_idx = hoje_pl.month  # próximo mês (1-indexed -> hoje_pl.month já é o próximo em index 0-based se hoje=Jul(7)->idx6=Ago? ajustamos abaixo)
+        # Padrão: mês ATUAL (é o que a maioria das pessoas quer ver/editar ao reabrir o app)
         mes_sel_pl = st.selectbox("🗓️ Mês de referência", meses_nomes_pl,
-                                   index=(hoje_pl.month % 12), key="pl_mes_sel")
+                                   index=(hoje_pl.month - 1), key="pl_mes_sel")
     with col_ano_pl:
         ano_sel_pl = st.selectbox("Ano", [hoje_pl.year, hoje_pl.year + 1], key="pl_ano_sel")
     mes_num_pl = meses_nomes_pl.index(mes_sel_pl) + 1
@@ -1163,13 +1161,23 @@ with selected_tab[1]:  # Planejamento
 
     plano = get_mes_planejamento(chave_mes_pl)
 
+    # Exibe o resultado do último salvamento (se houver) ANTES do formulário,
+    # para a mensagem realmente aparecer após o rerun.
+    if st.session_state.get("msg_planejamento"):
+        msg_tipo_pl, msg_txt_pl = st.session_state.msg_planejamento
+        if msg_tipo_pl == "success":
+            st.success(msg_txt_pl)
+        else:
+            st.error(msg_txt_pl)
+        del st.session_state["msg_planejamento"]
+
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
     # ── Renda prevista ──
     st.markdown('<div class="section-title">💵 Renda Prevista</div>', unsafe_allow_html=True)
     renda_prevista_pl = st.number_input("Quanto você espera receber neste mês?", min_value=0.0,
                                          value=float(plano.get("renda_prevista", 0.0)), step=50.0,
-                                         format="%.2f", key="pl_renda")
+                                         format="%.2f", key=f"pl_renda_{chave_mes_pl}")
 
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -1185,7 +1193,7 @@ with selected_tab[1]:  # Planejamento
     df_eventos_edit = df_eventos_base.rename(columns={"descricao":"Evento","categoria":"Categoria","valor_estimado":"Valor Estimado (R$)"})
 
     df_eventos_novo = st.data_editor(
-        df_eventos_edit, num_rows="dynamic", use_container_width=True, hide_index=True, key="pl_eventos_editor",
+        df_eventos_edit, num_rows="dynamic", use_container_width=True, hide_index=True, key=f"pl_eventos_editor_{chave_mes_pl}",
         column_config={
             "Evento": st.column_config.TextColumn("Evento", required=True),
             "Categoria": st.column_config.SelectboxColumn("Categoria", options=todas_categorias_pl, required=True),
@@ -1206,7 +1214,7 @@ with selected_tab[1]:  # Planejamento
                                                     "tipo":"Tipo","parcelas_restantes":"Parcelas Restantes"})
 
     df_fixos_novo = st.data_editor(
-        df_fixos_edit, num_rows="dynamic", use_container_width=True, hide_index=True, key="pl_fixos_editor",
+        df_fixos_edit, num_rows="dynamic", use_container_width=True, hide_index=True, key=f"pl_fixos_editor_{chave_mes_pl}",
         column_config={
             "Descrição": st.column_config.TextColumn("Descrição", required=True),
             "Categoria": st.column_config.SelectboxColumn("Categoria", options=todas_categorias_pl, required=True),
@@ -1228,7 +1236,7 @@ with selected_tab[1]:  # Planejamento
     ) if limites_atuais else pd.DataFrame(columns=["Categoria", "Limite (R$)"])
 
     df_limites_novo = st.data_editor(
-        df_limites_base, num_rows="dynamic", use_container_width=True, hide_index=True, key="pl_limites_editor",
+        df_limites_base, num_rows="dynamic", use_container_width=True, hide_index=True, key=f"pl_limites_editor_{chave_mes_pl}",
         column_config={
             "Categoria": st.column_config.SelectboxColumn("Categoria", options=todas_categorias_pl, required=True),
             "Limite (R$)": st.column_config.NumberColumn("Limite (R$)", min_value=0.0, format="%.2f", required=True),
@@ -1243,50 +1251,54 @@ with selected_tab[1]:  # Planejamento
     with col_meta1:
         meta_poupanca_pl = st.number_input("💰 Meta de poupança do mês (R$)", min_value=0.0,
                                             value=float(plano.get("meta_poupanca", 0.0)), step=50.0,
-                                            format="%.2f", key="pl_meta_poupanca")
+                                            format="%.2f", key=f"pl_meta_poupanca_{chave_mes_pl}")
     with col_meta2:
         meta_invest_pl = st.number_input("📈 Meta de investimento do mês (R$)", min_value=0.0,
                                           value=float(plano.get("meta_investimento", 0.0)), step=50.0,
-                                          format="%.2f", key="pl_meta_invest")
+                                          format="%.2f", key=f"pl_meta_invest_{chave_mes_pl}")
 
     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-    if st.button("💾 Salvar Planejamento do Mês", type="primary", use_container_width=True, key="pl_salvar"):
-        eventos_novos = []
-        for _, row in df_eventos_novo.iterrows():
-            desc_e = str(row.get("Evento", "")).strip()
-            cat_e  = str(row.get("Categoria", "")).strip()
-            val_e  = row.get("Valor Estimado (R$)", 0)
-            if desc_e and desc_e.lower() != "nan" and cat_e and cat_e.lower() != "nan" and pd.notna(val_e):
-                eventos_novos.append({"descricao": desc_e, "categoria": cat_e, "valor_estimado": float(val_e)})
+    if st.button("💾 Salvar Planejamento do Mês", type="primary", use_container_width=True, key=f"pl_salvar_{chave_mes_pl}"):
+        try:
+            eventos_novos = []
+            for _, row in df_eventos_novo.iterrows():
+                desc_e = str(row.get("Evento", "")).strip()
+                cat_e  = str(row.get("Categoria", "")).strip()
+                val_e  = row.get("Valor Estimado (R$)", 0)
+                if desc_e and desc_e.lower() != "nan" and cat_e and cat_e.lower() != "nan" and pd.notna(val_e):
+                    eventos_novos.append({"descricao": desc_e, "categoria": cat_e, "valor_estimado": float(val_e)})
 
-        fixos_novos = []
-        for _, row in df_fixos_novo.iterrows():
-            desc_f = str(row.get("Descrição", "")).strip()
-            cat_f  = str(row.get("Categoria", "")).strip()
-            val_f  = row.get("Valor (R$)", 0)
-            tipo_f = str(row.get("Tipo", "Fixo")).strip() or "Fixo"
-            parc_f = row.get("Parcelas Restantes", 0)
-            parc_f = int(parc_f) if pd.notna(parc_f) else 0
-            if desc_f and desc_f.lower() != "nan" and cat_f and cat_f.lower() != "nan" and pd.notna(val_f):
-                fixos_novos.append({"descricao": desc_f, "categoria": cat_f, "valor": float(val_f),
-                                     "tipo": tipo_f, "parcelas_restantes": parc_f})
+            fixos_novos = []
+            for _, row in df_fixos_novo.iterrows():
+                desc_f = str(row.get("Descrição", "")).strip()
+                cat_f  = str(row.get("Categoria", "")).strip()
+                val_f  = row.get("Valor (R$)", 0)
+                tipo_f = str(row.get("Tipo", "Fixo")).strip() or "Fixo"
+                parc_f = row.get("Parcelas Restantes", 0)
+                parc_f = int(parc_f) if pd.notna(parc_f) else 0
+                if desc_f and desc_f.lower() != "nan" and cat_f and cat_f.lower() != "nan" and pd.notna(val_f):
+                    fixos_novos.append({"descricao": desc_f, "categoria": cat_f, "valor": float(val_f),
+                                         "tipo": tipo_f, "parcelas_restantes": parc_f})
 
-        limites_novos = {}
-        for _, row in df_limites_novo.iterrows():
-            cat_l = str(row.get("Categoria", "")).strip()
-            lim_l = row.get("Limite (R$)", 0)
-            if cat_l and cat_l.lower() != "nan" and pd.notna(lim_l):
-                limites_novos[cat_l] = float(lim_l)
+            limites_novos = {}
+            for _, row in df_limites_novo.iterrows():
+                cat_l = str(row.get("Categoria", "")).strip()
+                lim_l = row.get("Limite (R$)", 0)
+                if cat_l and cat_l.lower() != "nan" and pd.notna(lim_l):
+                    limites_novos[cat_l] = float(lim_l)
 
-        plano["renda_prevista"] = float(renda_prevista_pl)
-        plano["eventos"] = eventos_novos
-        plano["fixos_parcelas"] = fixos_novos
-        plano["limites_categoria"] = limites_novos
-        plano["meta_poupanca"] = float(meta_poupanca_pl)
-        plano["meta_investimento"] = float(meta_invest_pl)
-        st.session_state.planejamento_map[chave_mes_pl] = plano
-        persistir_planejamento()
-        st.success("✅ Planejamento salvo com sucesso!")
+            plano["renda_prevista"] = float(renda_prevista_pl)
+            plano["eventos"] = eventos_novos
+            plano["fixos_parcelas"] = fixos_novos
+            plano["limites_categoria"] = limites_novos
+            plano["meta_poupanca"] = float(meta_poupanca_pl)
+            plano["meta_investimento"] = float(meta_invest_pl)
+            st.session_state.planejamento_map[chave_mes_pl] = plano
+            persistir_planejamento()
+            st.session_state.msg_planejamento = ("success",
+                f"✅ Planejamento de {mes_sel_pl}/{ano_sel_pl} salvo com sucesso! ({len(eventos_novos)} evento(s), {len(fixos_novos)} fixo(s)/parcela(s), {len(limites_novos)} limite(s) de categoria)")
+        except Exception as e:
+            st.session_state.msg_planejamento = ("error", f"❌ Erro ao salvar o planejamento: {e}")
         st.rerun()
 
     # ── Projeção por categoria ──
@@ -1528,6 +1540,16 @@ with selected_tab[3]:  # Lançamentos
     # Fora de st.form de propósito: Categoria e Descrição são amarradas (a 2ª depende da 1ª),
     # e formulários do Streamlit só atualizam ao enviar — os selects precisam reagir na hora.
     with aba_lanc[0]:
+        # Exibe o resultado do lançamento anterior (se houver) ANTES do formulário,
+        # para a mensagem realmente aparecer após o rerun.
+        if st.session_state.get("msg_lancamento_manual"):
+            msg_tipo_ml, msg_txt_ml = st.session_state.msg_lancamento_manual
+            if msg_tipo_ml == "success":
+                st.success(msg_txt_ml)
+            else:
+                st.error(msg_txt_ml)
+            del st.session_state["msg_lancamento_manual"]
+
         c1, c2 = st.columns(2)
         with c1:
             data_input = st.date_input("📅 Data", value=date.today(), key="ml_data")
@@ -1560,24 +1582,30 @@ with selected_tab[3]:  # Lançamentos
 
         if st.button("✦ Registrar Lançamento", type="primary", use_container_width=True, key="ml_submit"):
             if not categoria_input or not descricao_input:
-                st.error("Selecione uma Categoria e uma Descrição válidas.")
+                st.session_state.msg_lancamento_manual = ("error", "❌ Não foi possível registrar: selecione uma Categoria e uma Descrição válidas.")
+            elif not valor_input or valor_input <= 0:
+                st.session_state.msg_lancamento_manual = ("error", "❌ Não foi possível registrar: informe um valor maior que zero.")
             else:
-                icone_final = {"Receita": "💵", "Despesa": "💸"}[tipo_final]
-                novo = {
-                    "id": int(datetime.now().timestamp() * 1000),
-                    "data": str(data_input),
-                    "valor": float(valor_input),
-                    "descricao": descricao_input,
-                    "categoria_extra": "",
-                    "forma_pagamento": forma_pagamento_input,
-                    "tipo": tipo_final, "classe": categoria_input, "icone": icone_final,
-                }
-                st.session_state.lancamentos.insert(0, novo)
-                persistir()
-                st.success(f"✅ Registrado: {icone_final} {categoria_input} · {descricao_input} — {fmt_brl(valor_input)}")
-                if "ml_valor" in st.session_state:
-                    del st.session_state["ml_valor"]
-                st.rerun()
+                try:
+                    icone_final = {"Receita": "💵", "Despesa": "💸"}[tipo_final]
+                    novo = {
+                        "id": int(datetime.now().timestamp() * 1000),
+                        "data": str(data_input),
+                        "valor": float(valor_input),
+                        "descricao": descricao_input,
+                        "categoria_extra": "",
+                        "forma_pagamento": forma_pagamento_input,
+                        "tipo": tipo_final, "classe": categoria_input, "icone": icone_final,
+                    }
+                    st.session_state.lancamentos.insert(0, novo)
+                    persistir()
+                    st.session_state.msg_lancamento_manual = ("success",
+                        f"✅ Registrado com sucesso: {icone_final} {categoria_input} · {descricao_input} — {fmt_brl(valor_input)}")
+                    if "ml_valor" in st.session_state:
+                        del st.session_state["ml_valor"]
+                except Exception as e:
+                    st.session_state.msg_lancamento_manual = ("error", f"❌ Erro ao registrar o lançamento: {e}")
+            st.rerun()
 
     # ── Importar Excel ──
     with aba_lanc[1]:

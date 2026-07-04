@@ -26,7 +26,10 @@
           "parcelas_restantes": 359
         }
       ],
-      "limites_categoria": {},
+      "limites_categoria": {
+        "Carro": 1000.0,
+        "Casa": 500.0
+      },
       "meta_poupanca": 0.0,
       "meta_investimento": 0.0
     }

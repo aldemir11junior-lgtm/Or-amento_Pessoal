@@ -2,6 +2,39 @@
   "aldemir": {
     "lancamentos": [
       {
+        "id": 1783135368856,
+        "data": "2026-07-03",
+        "valor": 550.0,
+        "descricao": "Financiamento",
+        "categoria_extra": "",
+        "forma_pagamento": "Pix",
+        "tipo": "Despesa",
+        "classe": "Casa",
+        "icone": "💸"
+      },
+      {
+        "id": 1783135034236,
+        "data": "2026-07-03",
+        "valor": 500.0,
+        "descricao": "Renda Extra",
+        "categoria_extra": "",
+        "forma_pagamento": "Pix",
+        "tipo": "Receita",
+        "classe": "Outros",
+        "icone": "💵"
+      },
+      {
+        "id": 1783134689048,
+        "data": "2026-07-03",
+        "valor": 1500.0,
+        "descricao": "IPVA",
+        "categoria_extra": "",
+        "forma_pagamento": "Pix",
+        "tipo": "Despesa",
+        "classe": "Carro",
+        "icone": "💸"
+      },
+      {
         "id": 1782783887461,
         "data": "2026-04-30",
         "valor": 99.99,
