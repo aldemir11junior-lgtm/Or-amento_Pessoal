@@ -4,6 +4,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, date, timedelta
 import json, hashlib, os, io
+import psycopg2
+import psycopg2.extras
+from dotenv import load_dotenv
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="FinançasPro", layout="wide",
@@ -21,12 +24,6 @@ const observer = new MutationObserver(() => {
 observer.observe(document.querySelector('title'), { childList: true });
 </script>
 """, unsafe_allow_html=True)
-
-BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
-USERS_FILE     = os.path.join(BASE_DIR, "fp_usuarios.json")
-DATA_FILE      = os.path.join(BASE_DIR, "fp_dados.json")
-CATEGORIAS_FILE = os.path.join(BASE_DIR, "fp_categorias.json")
-PLANEJAMENTO_FILE = os.path.join(BASE_DIR, "fp_planejamento.json")
 
 # ─── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -192,51 +189,136 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ─── PERSISTÊNCIA ─────────────────────────────────────────────────────────────
-def load_users():
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError:
-                pass
-    default = [{"usuario": "Aldemir", "senha": hash_pw("123"), "role": "admin"}]
-    save_users(default)
-    return default
+# ─── CONEXÃO COM O BANCO (Supabase / PostgreSQL) ──────────────────────────────
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-def save_users(u):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(u, f, ensure_ascii=False, indent=2)
+def get_conn():
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL nao encontrada no .env")
+    return psycopg2.connect(DATABASE_URL)
 
-def hash_pw(pw): 
+# ─── PERSISTÊNCIA — USUÁRIOS ───────────────────────────────────────────────────
+def hash_pw(pw):
     return hashlib.sha256(pw.encode()).hexdigest()
 
+def load_users():
+    conn = get_conn()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                'SELECT usuario, senha_hash AS senha, role, status FROM "Orç_Usuarios" ORDER BY id'
+            )
+            rows = [dict(r) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+    if not rows:
+        default = [{"usuario": "Aldemir", "senha": hash_pw("123"), "role": "admin"}]
+        save_users(default)
+        return default
+    return rows
+
+def save_users(usuarios):
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute('DELETE FROM "Orç_Usuarios"')
+            for u in usuarios:
+                cur.execute(
+                    '''INSERT INTO "Orç_Usuarios" (usuario, senha_hash, role, status)
+                       VALUES (%s, %s, %s, %s)''',
+                    (u["usuario"], u["senha"], u.get("role", "user"), u.get("status", "aprovado")),
+                )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+# ─── PERSISTÊNCIA — LANÇAMENTOS E LIXEIRA ──────────────────────────────────────
+def _row_to_lancamento(r):
+    return {
+        "id": r["id"],
+        "data": r["data"].isoformat(),
+        "valor": float(r["valor"]),
+        "descricao": r["descricao"],
+        "categoria_extra": r["categoria_extra"] or "",
+        "forma_pagamento": r["forma_pagamento"] or "Cartão",
+        "tipo": r["tipo"],
+        "classe": r["classe"],
+        "icone": r["icone"] or "",
+    }
+
 def load_data(usuario):
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            try:
-                all_data = json.load(f)
-            except json.JSONDecodeError:
-                all_data = {}
-    else:
-        all_data = {}
-    key = usuario.lower()
-    user_section = all_data.get(key, {})
-    return user_section.get("lancamentos", []), user_section.get("lixeira", [])
+    conn = get_conn()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                '''SELECT id, data, valor, descricao, categoria_extra, forma_pagamento,
+                          tipo, classe, icone
+                   FROM "Orç_Lancamentos" WHERE LOWER(usuario) = LOWER(%s)
+                   ORDER BY id DESC''',
+                (usuario,),
+            )
+            lanc_rows = cur.fetchall()
+            cur.execute(
+                '''SELECT id, data, valor, descricao, categoria_extra, forma_pagamento,
+                          tipo, classe, icone, apagado_em
+                   FROM "Orç_Lixeira" WHERE LOWER(usuario) = LOWER(%s)
+                   ORDER BY apagado_em DESC''',
+                (usuario,),
+            )
+            lix_rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    lancamentos = [_row_to_lancamento(r) for r in lanc_rows]
+    lixeira = []
+    for r in lix_rows:
+        item = _row_to_lancamento(r)
+        apagado_em = r["apagado_em"]
+        if apagado_em.tzinfo is not None:
+            apagado_em = apagado_em.replace(tzinfo=None)
+        item["apagadoEm"] = apagado_em.isoformat()
+        lixeira.append(item)
+    return lancamentos, lixeira
 
 def save_data(usuario, lancamentos, lixeira):
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            try:
-                all_data = json.load(f)
-            except json.JSONDecodeError:
-                all_data = {}
-    else:
-        all_data = {}
-    key = usuario.lower()
-    all_data[key] = {"lancamentos": lancamentos, "lixeira": lixeira}
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(all_data, f, ensure_ascii=False, indent=2)
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute('DELETE FROM "Orç_Lancamentos" WHERE LOWER(usuario) = LOWER(%s)', (usuario,))
+            for l in lancamentos:
+                cur.execute(
+                    '''INSERT INTO "Orç_Lancamentos"
+                       (id, usuario, data, valor, descricao, categoria_extra,
+                        forma_pagamento, tipo, classe, icone)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
+                    (l["id"], usuario, l["data"], l["valor"], l["descricao"],
+                     l.get("categoria_extra", ""), l.get("forma_pagamento", "Cartão"),
+                     l["tipo"], l["classe"], l.get("icone", "")),
+                )
+
+            cur.execute('DELETE FROM "Orç_Lixeira" WHERE LOWER(usuario) = LOWER(%s)', (usuario,))
+            for l in lixeira:
+                cur.execute(
+                    '''INSERT INTO "Orç_Lixeira"
+                       (id, usuario, data, valor, descricao, categoria_extra,
+                        forma_pagamento, tipo, classe, icone, apagado_em)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
+                    (l["id"], usuario, l["data"], l["valor"], l["descricao"],
+                     l.get("categoria_extra", ""), l.get("forma_pagamento", "Cartão"),
+                     l["tipo"], l["classe"], l.get("icone", ""),
+                     l.get("apagadoEm")),
+                )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 # ─── CATEGORIAS / DESCRIÇÕES (tabela de-para importável via Excel) ────────────
 # Planilha padrão de Categoria x Descrição de Despesas, aplicada a todos os usuários
@@ -279,38 +361,48 @@ def _receitas_padrao():
     return [{"categoria": cat, "descricao": desc} for cat, descs in RECEITAS_PADRAO_BRUTO for desc in descs]
 
 def load_categorias(usuario):
-    if os.path.exists(CATEGORIAS_FILE):
-        with open(CATEGORIAS_FILE, "r", encoding="utf-8") as f:
-            try:
-                all_data = json.load(f)
-            except json.JSONDecodeError:
-                all_data = {}
-    else:
-        all_data = {}
-    bruto = all_data.get(usuario.lower(), {})
-    if isinstance(bruto, list):  # formato antigo, anterior à separação Despesa/Receita
-        despesa_lista = bruto if bruto else _despesas_padrao()
-        return {"despesa": despesa_lista, "receita": _receitas_padrao()}
-    despesa_lista = bruto.get("despesa", [])
+    conn = get_conn()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                '''SELECT tipo_lanc, categoria, descricao FROM "Orç_Categorias"
+                   WHERE LOWER(usuario) = LOWER(%s)''',
+                (usuario,),
+            )
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    despesa_lista = [{"categoria": r["categoria"], "descricao": r["descricao"]}
+                      for r in rows if r["tipo_lanc"] == "despesa"]
+    receita_lista = [{"categoria": r["categoria"], "descricao": r["descricao"]}
+                      for r in rows if r["tipo_lanc"] == "receita"]
+
     if not despesa_lista:
-        despesa_lista = _despesas_padrao()  # planilha padrão até o usuário importar a sua própria
-    receita_lista = bruto.get("receita", [])
+        despesa_lista = _despesas_padrao()
     if not receita_lista:
-        receita_lista = _receitas_padrao()  # planilha padrão até o usuário importar a sua própria
+        receita_lista = _receitas_padrao()
     return {"despesa": despesa_lista, "receita": receita_lista}
 
 def save_categorias(usuario, mapa):
-    if os.path.exists(CATEGORIAS_FILE):
-        with open(CATEGORIAS_FILE, "r", encoding="utf-8") as f:
-            try:
-                all_data = json.load(f)
-            except json.JSONDecodeError:
-                all_data = {}
-    else:
-        all_data = {}
-    all_data[usuario.lower()] = mapa
-    with open(CATEGORIAS_FILE, "w", encoding="utf-8") as f:
-        json.dump(all_data, f, ensure_ascii=False, indent=2)
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute('DELETE FROM "Orç_Categorias" WHERE LOWER(usuario) = LOWER(%s)', (usuario,))
+            for tipo_lanc in ("despesa", "receita"):
+                for item in mapa.get(tipo_lanc, []):
+                    cur.execute(
+                        '''INSERT INTO "Orç_Categorias" (usuario, tipo_lanc, categoria, descricao)
+                           VALUES (%s, %s, %s, %s)
+                           ON CONFLICT (usuario, tipo_lanc, categoria, descricao) DO NOTHING''',
+                        (usuario, tipo_lanc, item["categoria"], item["descricao"]),
+                    )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 def _mes_vazio():
     return {
@@ -323,28 +415,98 @@ def _mes_vazio():
     }
 
 def load_planejamento(usuario):
-    if os.path.exists(PLANEJAMENTO_FILE):
-        with open(PLANEJAMENTO_FILE, "r", encoding="utf-8") as f:
-            try:
-                all_data = json.load(f)
-            except json.JSONDecodeError:
-                all_data = {}
-    else:
-        all_data = {}
-    return all_data.get(usuario.lower(), {})
+    conn = get_conn()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                '''SELECT id, chave_mes, renda_prevista, meta_poupanca, meta_investimento
+                   FROM "Orç_Planejamento" WHERE LOWER(usuario) = LOWER(%s)''',
+                (usuario,),
+            )
+            meses = cur.fetchall()
+
+            resultado = {}
+            for mes in meses:
+                pid = mes["id"]
+                cur.execute(
+                    '''SELECT descricao, categoria, valor_estimado
+                       FROM "Orç_Planejamento_Eventos" WHERE planejamento_id = %s''',
+                    (pid,),
+                )
+                eventos = [dict(r) for r in cur.fetchall()]
+
+                cur.execute(
+                    '''SELECT descricao, categoria, valor, tipo, parcelas_restantes
+                       FROM "Orç_Planejamento_Fixos" WHERE planejamento_id = %s''',
+                    (pid,),
+                )
+                fixos = [dict(r) for r in cur.fetchall()]
+
+                cur.execute(
+                    '''SELECT categoria, limite FROM "Orç_Planejamento_Limites"
+                       WHERE planejamento_id = %s''',
+                    (pid,),
+                )
+                limites = {r["categoria"]: float(r["limite"]) for r in cur.fetchall()}
+
+                resultado[mes["chave_mes"]] = {
+                    "renda_prevista": float(mes["renda_prevista"]),
+                    "eventos": eventos,
+                    "fixos_parcelas": fixos,
+                    "limites_categoria": limites,
+                    "meta_poupanca": float(mes["meta_poupanca"]),
+                    "meta_investimento": float(mes["meta_investimento"]),
+                }
+    finally:
+        conn.close()
+    return resultado
 
 def save_planejamento(usuario, mapa_meses):
-    if os.path.exists(PLANEJAMENTO_FILE):
-        with open(PLANEJAMENTO_FILE, "r", encoding="utf-8") as f:
-            try:
-                all_data = json.load(f)
-            except json.JSONDecodeError:
-                all_data = {}
-    else:
-        all_data = {}
-    all_data[usuario.lower()] = mapa_meses
-    with open(PLANEJAMENTO_FILE, "w", encoding="utf-8") as f:
-        json.dump(all_data, f, ensure_ascii=False, indent=2)
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            # CASCADE nas tabelas filhas já apaga eventos/fixos/limites junto
+            cur.execute('DELETE FROM "Orç_Planejamento" WHERE LOWER(usuario) = LOWER(%s)', (usuario,))
+
+            for chave_mes, plano in mapa_meses.items():
+                cur.execute(
+                    '''INSERT INTO "Orç_Planejamento"
+                       (usuario, chave_mes, renda_prevista, meta_poupanca, meta_investimento)
+                       VALUES (%s, %s, %s, %s, %s) RETURNING id''',
+                    (usuario, chave_mes, plano.get("renda_prevista", 0.0),
+                     plano.get("meta_poupanca", 0.0), plano.get("meta_investimento", 0.0)),
+                )
+                pid = cur.fetchone()[0]
+
+                for e in plano.get("eventos", []):
+                    cur.execute(
+                        '''INSERT INTO "Orç_Planejamento_Eventos"
+                           (planejamento_id, descricao, categoria, valor_estimado)
+                           VALUES (%s, %s, %s, %s)''',
+                        (pid, e["descricao"], e["categoria"], e.get("valor_estimado", 0.0)),
+                    )
+
+                for f in plano.get("fixos_parcelas", []):
+                    cur.execute(
+                        '''INSERT INTO "Orç_Planejamento_Fixos"
+                           (planejamento_id, descricao, categoria, valor, tipo, parcelas_restantes)
+                           VALUES (%s, %s, %s, %s, %s, %s)''',
+                        (pid, f["descricao"], f["categoria"], f.get("valor", 0.0),
+                         f.get("tipo", "Fixo"), f.get("parcelas_restantes", 0)),
+                    )
+
+                for cat, limite in plano.get("limites_categoria", {}).items():
+                    cur.execute(
+                        '''INSERT INTO "Orç_Planejamento_Limites" (planejamento_id, categoria, limite)
+                           VALUES (%s, %s, %s)''',
+                        (pid, cat, limite),
+                    )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 def get_mes_planejamento(chave_mes):
     """Retorna (criando se preciso) o dicionário de planejamento do mês informado (formato 'YYYY-MM')."""
