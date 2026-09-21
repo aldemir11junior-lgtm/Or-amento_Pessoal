@@ -191,7 +191,10 @@ html, body, [class*="css"] {
 
 # ─── CONEXÃO COM O BANCO (Supabase / PostgreSQL) ──────────────────────────────
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
+try:
+    DATABASE_URL = st.secrets["DATABASE_URL"]  # Streamlit Cloud
+except Exception:
+    DATABASE_URL = os.getenv("DATABASE_URL")   # execução local (.env)
 
 def get_conn():
     if not DATABASE_URL:
@@ -360,15 +363,13 @@ RECEITAS_PADRAO_BRUTO = [
 def _receitas_padrao():
     return [{"categoria": cat, "descricao": desc} for cat, descs in RECEITAS_PADRAO_BRUTO for desc in descs]
 
-def load_categorias(usuario):
+def load_categorias(usuario=None):
+    # Categorias agora são globais (compartilhadas entre todos os usuários).
+    # O parâmetro 'usuario' é ignorado — mantido só por compatibilidade com as chamadas existentes.
     conn = get_conn()
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(
-                '''SELECT tipo_lanc, categoria, descricao FROM "Orç_Categorias"
-                   WHERE LOWER(usuario) = LOWER(%s)''',
-                (usuario,),
-            )
+            cur.execute('SELECT tipo_lanc, categoria, descricao FROM "Orç_Categorias"')
             rows = cur.fetchall()
     finally:
         conn.close()
@@ -385,17 +386,19 @@ def load_categorias(usuario):
     return {"despesa": despesa_lista, "receita": receita_lista}
 
 def save_categorias(usuario, mapa):
+    # Categorias agora são globais. O parâmetro 'usuario' é ignorado (mantido por
+    # compatibilidade) — a restrição de quem PODE chamar isso é feita na UI (só admin).
     conn = get_conn()
     try:
         with conn.cursor() as cur:
-            cur.execute('DELETE FROM "Orç_Categorias" WHERE LOWER(usuario) = LOWER(%s)', (usuario,))
+            cur.execute('DELETE FROM "Orç_Categorias"')
             for tipo_lanc in ("despesa", "receita"):
                 for item in mapa.get(tipo_lanc, []):
                     cur.execute(
-                        '''INSERT INTO "Orç_Categorias" (usuario, tipo_lanc, categoria, descricao)
-                           VALUES (%s, %s, %s, %s)
-                           ON CONFLICT (usuario, tipo_lanc, categoria, descricao) DO NOTHING''',
-                        (usuario, tipo_lanc, item["categoria"], item["descricao"]),
+                        '''INSERT INTO "Orç_Categorias" (tipo_lanc, categoria, descricao)
+                           VALUES (%s, %s, %s)
+                           ON CONFLICT (tipo_lanc, categoria, descricao) DO NOTHING''',
+                        (tipo_lanc, item["categoria"], item["descricao"]),
                     )
         conn.commit()
     except Exception:
@@ -2244,7 +2247,6 @@ with selected_tab[5]:  # Descrições
         df_edit_base = df_atual.rename(columns={"categoria": "Categoria", "descricao": "Descrição"})
 
         st.markdown(f'<div class="section-title">📋 Categorias e Descrições de {titulo}</div>', unsafe_allow_html=True)
-        st.caption("Edite direto na tabela: clique numa célula para alterar. Use a última linha (em branco) para adicionar um item novo, e selecione uma linha para ver o ícone de lixeira e removê-la. Depois clique em Salvar.")
 
         busca = st.text_input("🔍 Buscar categoria ou descrição", key=f"busca_{tipo_chave}", placeholder="Digite para filtrar a tabela...")
 
@@ -2259,6 +2261,17 @@ with selected_tab[5]:  # Descrições
         else:
             df_visivel = df_edit_base.copy()
             df_oculto  = df_edit_base.iloc[0:0].copy()
+
+        if not st.session_state.is_admin:
+            st.caption("Estas categorias e descrições são compartilhadas por todos os usuários. Apenas o administrador pode editá-las.")
+            st.dataframe(df_visivel, use_container_width=True, hide_index=True)
+            if busca:
+                st.caption(f"Mostrando {len(df_visivel)} de {len(df_edit_base)} linha(s).")
+            qtd_categorias_salvas = len(st.session_state.categorias_map.get(tipo_chave, []))
+            st.caption(f"✅ Atualmente {qtd_categorias_salvas} combinação(ões) de Categoria/Descrição cadastrada(s) para {titulo}.")
+            return
+
+        st.caption("Categorias e descrições compartilhadas por todos os usuários — só o administrador pode editar. Clique numa célula para alterar. Use a última linha (em branco) para adicionar um item novo, e selecione uma linha para ver o ícone de lixeira e removê-la. Depois clique em Salvar.")
 
         df_editado_visivel = st.data_editor(
             df_visivel,
