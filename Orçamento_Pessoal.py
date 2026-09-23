@@ -8,6 +8,19 @@ import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
 
+# ─── FUSO HORÁRIO (Brasil, sem horário de verão desde 2019) ───────────────────
+# O servidor do Streamlit Cloud roda em UTC. Sem isso, à noite (a partir de
+# ~21h em Brasília) o servidor já "vira o dia" 3h antes da hora local.
+from datetime import timezone as _timezone
+
+_TZ_BR = _timezone(timedelta(hours=-3))
+
+def agora_br():
+    return datetime.now(_timezone.utc).astimezone(_TZ_BR).replace(tzinfo=None)
+
+def hoje_br():
+    return agora_br().date()
+
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="FinançasPro", layout="wide",
                    initial_sidebar_state="collapsed")
@@ -656,7 +669,7 @@ if not st.session_state.logged_in:
                         st.session_state.categorias_map = load_categorias(found["usuario"])
                         st.session_state.planejamento_map = load_planejamento(found["usuario"])
                         # Limpa itens apagados há mais de 30 dias ao fazer login
-                        hoje_login = datetime.now()
+                        hoje_login = agora_br()
                         st.session_state.lixeira = [
                             l for l in st.session_state.lixeira
                             if (hoje_login - datetime.fromisoformat(
@@ -707,7 +720,7 @@ def limpar_lixeira_antiga():
     """Remove itens apagados há mais de 30 dias automaticamente."""
     if not st.session_state.lixeira:
         return
-    hoje = datetime.now()
+    hoje = agora_br()
     antes = len(st.session_state.lixeira)
     st.session_state.lixeira = [
         l for l in st.session_state.lixeira
@@ -760,7 +773,7 @@ with col_sair:
         st.rerun()
 
 # ─── NAVEGAÇÃO POR ABAS ───────────────────────────────────────────────────────
-pages = ["📊 Dashboard", "🗓️ Planejamento", "🔎 Análise e Insights", "➕ Lançamentos", "📋 Histórico", "🏷️ Descrições", "⚙️ Conta"]
+pages = ["📊 Dashboard", "🗓️ Planejamento", "🔎 Análise e Insights", "➕ Lançamentos", "📋 Histórico", "⚙️ Conta"]
 if st.session_state.is_admin:
     pages.append("👥 Usuários")
 
@@ -771,7 +784,6 @@ PAGE_MAP = {
     "🔎 Análise e Insights": "Análise",
     "➕ Lançamentos": "Lançamentos",
     "📋 Histórico": "Histórico",
-    "🏷️ Descrições": "Descrições",
     "⚙️ Conta": "Conta",
     "👥 Usuários": "Usuários",
 }
@@ -792,7 +804,7 @@ current_page = _active_page
 # ══════════════════════════════════════════════════════════════════
 with selected_tab[0]:  # Dashboard
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Visão <span style=\'color:#00704A\'>Geral</span></div>', unsafe_allow_html=True)
-    st.markdown(f'<div style="font-size:0.8rem;color:#1a6645;">Atualizado em {datetime.now().strftime("%d/%m/%Y às %H:%M")}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="font-size:0.8rem;color:#1a6645;">Atualizado em {agora_br().strftime("%d/%m/%Y às %H:%M")}</div>', unsafe_allow_html=True)
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
     # ── FILTRO DE DATA (acima dos cards) ──
@@ -803,13 +815,13 @@ with selected_tab[0]:  # Dashboard
         datas_existentes = [datetime.strptime(l["data"], "%Y-%m-%d").date() for l in lancamentos]
         data_min_dados = min(datas_existentes)
     else:
-        data_min_dados = date.today().replace(day=1)
+        data_min_dados = hoje_br().replace(day=1)
 
     # Inicializa as keys intermediárias apenas uma vez
     if "filtro_inicio_val" not in st.session_state:
         st.session_state.filtro_inicio_val = data_min_dados
     if "filtro_fim_val" not in st.session_state:
-        st.session_state.filtro_fim_val = date.today()
+        st.session_state.filtro_fim_val = hoje_br()
 
     # Atalhos ficam ANTES dos widgets — alteram só as keys intermediárias
     col_d1, col_d2, col_d3 = st.columns([2, 2, 3])
@@ -818,18 +830,18 @@ with selected_tab[0]:  # Dashboard
         col_at1, col_at2, col_at3 = st.columns(3)
         with col_at1:
             if st.button("Este mês", key="at_mes", use_container_width=True):
-                st.session_state.filtro_inicio_val = date.today().replace(day=1)
-                st.session_state.filtro_fim_val    = date.today()
+                st.session_state.filtro_inicio_val = hoje_br().replace(day=1)
+                st.session_state.filtro_fim_val    = hoje_br()
                 st.rerun()
         with col_at2:
             if st.button("Últ. 3 meses", key="at_3m", use_container_width=True):
-                st.session_state.filtro_inicio_val = date.today() - timedelta(days=90)
-                st.session_state.filtro_fim_val    = date.today()
+                st.session_state.filtro_inicio_val = hoje_br() - timedelta(days=90)
+                st.session_state.filtro_fim_val    = hoje_br()
                 st.rerun()
         with col_at3:
             if st.button("Este ano", key="at_ano", use_container_width=True):
-                st.session_state.filtro_inicio_val = date.today().replace(month=1, day=1)
-                st.session_state.filtro_fim_val    = date.today()
+                st.session_state.filtro_inicio_val = hoje_br().replace(month=1, day=1)
+                st.session_state.filtro_fim_val    = hoje_br()
                 st.rerun()
 
     # Widgets leem value= das keys intermediárias (sem key= própria para evitar conflito)
@@ -838,7 +850,7 @@ with selected_tab[0]:  # Dashboard
             "📅 Data inicial",
             value=st.session_state.filtro_inicio_val,
             min_value=date(2000, 1, 1),
-            max_value=date.today(),
+            max_value=hoje_br(),
             format="DD/MM/YYYY"
         )
         st.session_state.filtro_inicio_val = data_inicio
@@ -847,7 +859,7 @@ with selected_tab[0]:  # Dashboard
             "📅 Data final",
             value=st.session_state.filtro_fim_val,
             min_value=date(2000, 1, 1),
-            max_value=date.today(),
+            max_value=hoje_br(),
             format="DD/MM/YYYY"
         )
         st.session_state.filtro_fim_val = data_fim
@@ -895,7 +907,7 @@ with selected_tab[0]:  # Dashboard
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
     # ── Gráfico de Linha Suavizada: Evolução Mensal (sempre ano atual, ignora filtro de período) ──
-    ano_atual = date.today().year
+    ano_atual = hoje_br().year
     lanc_ano_atual = [
         l for l in lancamentos
         if datetime.strptime(l["data"], "%Y-%m-%d").date().year == ano_atual
@@ -1316,7 +1328,7 @@ with selected_tab[1]:  # Planejamento
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:16px;">Monte o orçamento antes do mês começar: informe a renda prevista, os eventos e parcelas esperados, defina limites por categoria e metas de poupança/investimento — e veja a projeção antes mesmo de gastar um centavo.</div>', unsafe_allow_html=True)
 
     # ── Seletor de mês de referência ──
-    hoje_pl = date.today()
+    hoje_pl = hoje_br()
     meses_nomes_pl = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
     col_mes_pl, col_ano_pl, col_dummy_pl = st.columns([2, 1.2, 3])
     with col_mes_pl:
@@ -1556,7 +1568,7 @@ with selected_tab[2]:  # Análise e Insights
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Análise <span style=\'color:#00704A\'>e Insights</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:16px;">O que os seus números estão tentando te dizer — do problema mais urgente para o menos urgente.</div>', unsafe_allow_html=True)
 
-    hoje_ai = date.today()
+    hoje_ai = hoje_br()
     dias_no_mes = (date(hoje_ai.year + (1 if hoje_ai.month == 12 else 0), (hoje_ai.month % 12) + 1, 1) - timedelta(days=1)).day
     dia_atual = hoje_ai.day
     fracao_mes_passado = dia_atual / dias_no_mes
@@ -1710,7 +1722,7 @@ with selected_tab[2]:  # Análise e Insights
 # ══════════════════════════════════════════════════════════════════
 with selected_tab[3]:  # Lançamentos
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Novo <span style=\'color:#00704A\'>Lançamento</span></div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Informe data e valor, e escolha a Categoria (visão macro) e a Descrição (detalhe) cadastradas na aba 🏷️ Descrições.</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Informe data e valor, e escolha a Categoria (visão macro) e a Descrição (detalhe).</div>', unsafe_allow_html=True)
 
     aba_lanc = st.tabs(["✏️ Lançamento Manual", "📂 Importar Excel"])
 
@@ -1730,7 +1742,7 @@ with selected_tab[3]:  # Lançamentos
 
         c1, c2 = st.columns(2)
         with c1:
-            data_input = st.date_input("📅 Data", value=date.today(), key="ml_data")
+            data_input = st.date_input("📅 Data", value=hoje_br(), key="ml_data")
         with c2:
             valor_input = st.number_input("💰 Valor (R$)", min_value=0.01, step=0.01, format="%.2f", key="ml_valor")
 
@@ -1746,7 +1758,7 @@ with selected_tab[3]:  # Lançamentos
         categorias_opts = categorias_disponiveis(tipo_chave)
         categoria_input, descricao_input = None, None
         if not categorias_opts:
-            st.warning(f"⚠️ Nenhuma categoria de {tipo_final} cadastrada ainda. Vá até a aba **🏷️ Descrições** e importe a planilha correspondente antes de registrar um lançamento manual.")
+            st.warning(f"⚠️ Nenhuma categoria de {tipo_final} cadastrada ainda. Peça ao administrador para cadastrar as categorias diretamente no banco de dados.")
         else:
             cc1, cc2 = st.columns(2)
             with cc1:
@@ -1767,7 +1779,7 @@ with selected_tab[3]:  # Lançamentos
                 try:
                     icone_final = {"Receita": "💵", "Despesa": "💸"}[tipo_final]
                     novo = {
-                        "id": int(datetime.now().timestamp() * 1000),
+                        "id": int(agora_br().timestamp() * 1000),
                         "data": str(data_input),
                         "valor": float(valor_input),
                         "descricao": descricao_input,
@@ -1962,7 +1974,7 @@ with selected_tab[3]:  # Lançamentos
                             r1, r2, r3 = st.columns(3)
                             with r1:
                                 label_d = "📅 Data" + ("" if item["d_ok"] else " ⚠️")
-                                val_d = item["d_val"] if isinstance(item["d_val"], date) else date.today()
+                                val_d = item["d_val"] if isinstance(item["d_val"], date) else hoje_br()
                                 data_rev = st.date_input(label_d, value=val_d, key=f"rev_d_{idx}", disabled=item["d_ok"])
                             with r2:
                                 label_v = "💰 Valor" + ("" if item["v_ok"] else " ⚠️")
@@ -2007,7 +2019,7 @@ with selected_tab[3]:  # Lançamentos
                     if st.button("✦ Importar todos os lançamentos", type="primary", use_container_width=True, key="btn_importar_excel"):
                         importados = 0
                         erros = 0
-                        ts_base = int(datetime.now().timestamp() * 1000)
+                        ts_base = int(agora_br().timestamp() * 1000)
 
                         for i, item in enumerate(linhas_ok_x):
                             if eh_receita_import:
@@ -2122,7 +2134,7 @@ with selected_tab[4]:  # Histórico
                         st.rerun()
                 with col_btn:
                     if st.button("🗑", key=f"del_{l['id']}", help="Mover para Apagados"):
-                        l["apagadoEm"] = datetime.now().isoformat()
+                        l["apagadoEm"] = agora_br().isoformat()
                         st.session_state.lixeira.insert(0, l)
                         st.session_state.lancamentos.remove(l)
                         persistir()
@@ -2136,7 +2148,7 @@ with selected_tab[4]:  # Histórico
                     try:
                         data_val_edit = datetime.strptime(l["data"], "%Y-%m-%d").date()
                     except Exception:
-                        data_val_edit = date.today()
+                        data_val_edit = hoje_br()
                     ec1, ec2 = st.columns(2)
                     with ec1:
                         data_edit = st.date_input("📅 Data", value=data_val_edit, key=f"edit_d_{l['id']}")
@@ -2215,8 +2227,8 @@ with selected_tab[4]:  # Histórico
                 with col_rest:
                     # Calcular dias restantes
                     try:
-                        apagado_em = datetime.fromisoformat(l.get("apagadoEm", datetime.now().isoformat()))
-                        dias_restantes = 30 - (datetime.now() - apagado_em).days
+                        apagado_em = datetime.fromisoformat(l.get("apagadoEm", agora_br().isoformat()))
+                        dias_restantes = 30 - (agora_br() - apagado_em).days
                         dias_restantes = max(0, dias_restantes)
                     except Exception:
                         dias_restantes = 30
@@ -2235,113 +2247,9 @@ with selected_tab[4]:  # Histórico
                         st.rerun()
 
 # ══════════════════════════════════════════════════════════════════
-# DESCRIÇÕES (tabela de-para Categoria x Descrição, importável via Excel)
-# ══════════════════════════════════════════════════════════════════
-with selected_tab[5]:  # Descrições
-    st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Categorias <span style=\'color:#00704A\'>& Descrições</span></div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Categoria é a visão macro usada nos relatórios (ex: Alimentação). Descrição é o detalhe (ex: Mercado, Restaurante). Edite direto na tabela abaixo — lançamentos já registrados mantêm a categoria/descrição do momento em que foram feitos.</div>', unsafe_allow_html=True)
-
-    def _bloco_categorias(tipo_chave, titulo):
-        lista_atual = st.session_state.categorias_map.get(tipo_chave, [])
-        df_atual = pd.DataFrame(lista_atual) if lista_atual else pd.DataFrame(columns=["categoria", "descricao"])
-        df_edit_base = df_atual.rename(columns={"categoria": "Categoria", "descricao": "Descrição"})
-
-        st.markdown(f'<div class="section-title">📋 Categorias e Descrições de {titulo}</div>', unsafe_allow_html=True)
-
-        busca = st.text_input("🔍 Buscar categoria ou descrição", key=f"busca_{tipo_chave}", placeholder="Digite para filtrar a tabela...")
-
-        if busca:
-            termo = busca.strip().lower()
-            mask = (
-                df_edit_base["Categoria"].str.lower().str.contains(termo, na=False)
-                | df_edit_base["Descrição"].str.lower().str.contains(termo, na=False)
-            )
-            df_visivel = df_edit_base[mask].copy()
-            df_oculto  = df_edit_base[~mask].copy()
-        else:
-            df_visivel = df_edit_base.copy()
-            df_oculto  = df_edit_base.iloc[0:0].copy()
-
-        if not st.session_state.is_admin:
-            st.caption("Estas categorias e descrições são compartilhadas por todos os usuários. Apenas o administrador pode editá-las.")
-            st.dataframe(df_visivel, use_container_width=True, hide_index=True)
-            if busca:
-                st.caption(f"Mostrando {len(df_visivel)} de {len(df_edit_base)} linha(s).")
-            qtd_categorias_salvas = len(st.session_state.categorias_map.get(tipo_chave, []))
-            st.caption(f"✅ Atualmente {qtd_categorias_salvas} combinação(ões) de Categoria/Descrição cadastrada(s) para {titulo}.")
-            return
-
-        st.caption("Categorias e descrições compartilhadas por todos os usuários — só o administrador pode editar. Clique numa célula para alterar. Use a última linha (em branco) para adicionar um item novo, e selecione uma linha para ver o ícone de lixeira e removê-la. Depois clique em Salvar.")
-
-        df_editado_visivel = st.data_editor(
-            df_visivel,
-            num_rows="dynamic",
-            use_container_width=True,
-            hide_index=True,
-            key=f"editor_{tipo_chave}",
-            column_config={
-                "Categoria": st.column_config.TextColumn("Categoria", required=True),
-                "Descrição": st.column_config.TextColumn("Descrição", required=True),
-            }
-        )
-
-        if busca:
-            st.caption(f"Mostrando {len(df_visivel)} de {len(df_edit_base)} linha(s). As demais linhas não somem — só ficam ocultas enquanto o filtro estiver ativo.")
-
-        col_salvar, col_restaurar = st.columns(2)
-
-        with col_salvar:
-            if st.button(f"💾 Salvar alterações de {titulo}", type="primary", use_container_width=True, key=f"salvar_{tipo_chave}"):
-                df_final = pd.concat([df_oculto, df_editado_visivel], ignore_index=True)
-                nova_lista, vistos = [], set()
-                for _, row in df_final.iterrows():
-                    cat_v = str(row.get("Categoria", "")).strip()
-                    desc_v = str(row.get("Descrição", "")).strip()
-                    if cat_v and desc_v and cat_v.lower() != "nan" and desc_v.lower() != "nan":
-                        chave = (cat_v.lower(), desc_v.lower())
-                        if chave not in vistos:
-                            vistos.add(chave)
-                            nova_lista.append({"categoria": cat_v, "descricao": desc_v})
-                st.session_state.categorias_map[tipo_chave] = nova_lista
-                persistir_categorias()
-                st.success(f"✅ {len(nova_lista)} combinações de {titulo} salvas com sucesso!")
-                st.rerun()
-
-        with col_restaurar:
-            confirm_key = f"confirmar_restaurar_{tipo_chave}"
-            if not st.session_state.get(confirm_key, False):
-                if st.button("🏭 Restaurar padrão de fábrica", use_container_width=True, key=f"restaurar_{tipo_chave}"):
-                    st.session_state[confirm_key] = True
-                    st.rerun()
-            else:
-                st.warning(f"⚠️ Isso vai substituir TODAS as categorias/descrições de {titulo} pela lista padrão original. Lançamentos já feitos não são afetados.")
-                cc1, cc2 = st.columns(2)
-                with cc1:
-                    if st.button("✅ Confirmar restauração", type="primary", use_container_width=True, key=f"conf_restaurar_{tipo_chave}"):
-                        padrao = _despesas_padrao() if tipo_chave == "despesa" else _receitas_padrao()
-                        st.session_state.categorias_map[tipo_chave] = padrao
-                        persistir_categorias()
-                        st.session_state[confirm_key] = False
-                        st.success(f"✅ Categorias de {titulo} restauradas ao padrão de fábrica!")
-                        st.rerun()
-                with cc2:
-                    if st.button("✕ Cancelar", use_container_width=True, key=f"canc_restaurar_{tipo_chave}"):
-                        st.session_state[confirm_key] = False
-                        st.rerun()
-
-            st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
-        qtd_categorias_salvas = len(st.session_state.categorias_map.get(tipo_chave, []))
-        st.caption(f"✅ Atualmente {qtd_categorias_salvas} combinação(ões) de Categoria/Descrição salva(s) para {titulo}.")
-
-    aba_desc = st.tabs(["💸 Despesas", "💵 Receitas"])
-    with aba_desc[0]:
-        _bloco_categorias("despesa", "Despesas")
-    with aba_desc[1]:
-        _bloco_categorias("receita", "Receitas")
-# ══════════════════════════════════════════════════════════════════
 # CONTA
 # ══════════════════════════════════════════════════════════════════
-with selected_tab[6] if len(selected_tab) > 6 else selected_tab[0]:  # Conta
+with selected_tab[5] if len(selected_tab) > 5 else selected_tab[0]:  # Conta
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Minha <span style=\'color:#00704A\'>Conta</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Altere sua senha de acesso quando quiser.</div>', unsafe_allow_html=True)
 
@@ -2367,7 +2275,7 @@ with selected_tab[6] if len(selected_tab) > 6 else selected_tab[0]:  # Conta
                     save_users(usuarios_conta)
                     st.success("✅ Senha alterada com sucesso!")
 
-with selected_tab[7] if len(selected_tab) > 7 else selected_tab[0]:  # Usuários (admin)
+with selected_tab[6] if len(selected_tab) > 6 else selected_tab[0]:  # Usuários (admin)
     if not st.session_state.is_admin:
         st.error("Acesso restrito ao administrador.")
     else:
