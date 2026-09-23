@@ -2253,6 +2253,19 @@ with selected_tab[5] if len(selected_tab) > 5 else selected_tab[0]:  # Conta
     st.markdown('<div style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;color:#00704A;margin-bottom:4px;">Minha <span style=\'color:#00704A\'>Conta</span></div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:20px;">Altere sua senha de acesso quando quiser.</div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="section-title">🔄 Atualizar Dados</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.8rem;color:#1a6645;margin-bottom:12px;">Se você lançou algo em outro aparelho (ou outra aba) e não está aparecendo aqui, use este botão para recarregar tudo direto do banco de dados, sem precisar sair e entrar de novo.</div>', unsafe_allow_html=True)
+    if st.button("🔄 Atualizar Dados", type="primary", use_container_width=True, key="btn_atualizar_dados"):
+        lanc_atualizado, lix_atualizado = load_data(st.session_state.username)
+        st.session_state.lancamentos = lanc_atualizado
+        st.session_state.lixeira = lix_atualizado
+        st.session_state.categorias_map = load_categorias(st.session_state.username)
+        st.session_state.planejamento_map = load_planejamento(st.session_state.username)
+        st.success("✅ Dados atualizados direto do banco de dados!")
+        st.rerun()
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
     st.markdown('<div class="section-title">🔑 Alterar Senha</div>', unsafe_allow_html=True)
     with st.form("form_trocar_senha"):
         senha_atual = st.text_input("🔒 Senha atual", type="password", key="conta_atual")
